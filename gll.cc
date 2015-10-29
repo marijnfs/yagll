@@ -145,14 +145,16 @@ Grammar compile(GrammerDef gramdef) {
   for (auto &rule_def : gramdef) {
     int main_rule_nr = nr[rule_def.first]; //index of main rule
     
+    SpawnOp* rule_spawner = new SpawnOp();
 
     for (string desc : rule_def.second) {
       istringstream iss(desc);
       vector<string> descriptions;
       copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(descriptions));
 
-      ((SpawnOp*)grammar.ops[main_rule_nr])->spawn_rules.push_back(subrule);
-
+      rule_spawner->spawn_rules.push_back(subrule);
+      
+      grammar.ops.push_back(0);
       for (size_t i(0); i < descriptions.size(); ++i) {
         string &name = descriptions[i];
         if (names.count(name)) { //a rule is matched
@@ -166,7 +168,11 @@ Grammar compile(GrammerDef gramdef) {
         subrule++;
       }
     }
+
+    grammar.ops[main_rule_nr] = rule_spawner;
   }
+
+  return grammar;
 }
 
 struct Parser {
@@ -198,9 +204,9 @@ struct Parser {
 };
 
 int main(int argc, char **argv) {
-  assert(argc == 2);
+  // assert(argc == 2);
 
-  string str(argv[1]);
+  //string str(argv[1]);
 
   cout << "Starting" << endl;
 
