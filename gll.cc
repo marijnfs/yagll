@@ -1,15 +1,21 @@
 #include <iostream>
+#include <sstream>
+#include <iterator>
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <string>
+#include <set>
+#include <queue>
+#include <cassert>
 
 using namespace std;
 
-struct RuleRef {
+struct NodeRef {
   int rule, i;
 
-  bool operator<(RuleRef &const other) const {
-    if (rule == other.rule)
+  bool operator<(NodeRef const &other) const {
+    if (rule == other.rule)  
       return i < other.i;
     return rule < other.rule;
   }
@@ -17,35 +23,36 @@ struct RuleRef {
 
 struct Descriptor {
   int index;
-  RuleRef ref;
+  NodeRef ref;
 
-  bool operator<(Descriptor &const other) const {
+  bool operator<(Descriptor const &other) const {
     if (index == other.index)
       return ref < other.ref;
     return index < other.index;
   }
 };
 
+
 struct GSS {
-  map<RuleRef, int> node_map;
-  vector<RuleRef> nodes;
+  map<NodeRef, int> node_map;
+  vector<NodeRef> nodes;
   vector<set<int>> links;
   
 
-  bool add_node(RuleRef ref) {
+  bool add_node(NodeRef ref) {
     if (node_map.count(ref))
       return false;
     node_map[ref] = nodes.size();
     nodes.push_back(ref);
-    links.push_back(set<int>())
+    links.push_back(set<int>());
   }
 
-  bool add_link(RuleRef ref, RuleRef parent) {
+  bool add_link(NodeRef ref, NodeRef parent) {
     int from = node_map[ref];
     int to = node_map[parent];
     set<int> &refs(links[from]);
 
-    if (set.count(to))
+    if (refs.count(to))
       return false;
     refs.insert(to);
   }
@@ -53,14 +60,14 @@ struct GSS {
 };
 
 struct Op {
-  virtual operator()(){}
+  virtual void operator()(string &data, GSS &gss, queue<Descriptor> &queue, NodeRef node, int index){}
 };
 
 struct MatchOp : public Op {
   MatchOp(string a_) : a(a_) {}
-    operator()(string &data, GSS &gss, RuleRef node, int index) {
-      if (data.substr(index, index+len(a)) == a)
-	gss.add_descriptor(Descriptor{index+1, node});
+    void operator()(string &data, GSS &gss, queue<Descriptor> &queue, NodeRef node, int index) {
+      if (data.substr(index, index + a.size()) == a)
+      	queue.push(Descriptor{index+1, node});
     }
   
   string a;
@@ -68,30 +75,32 @@ struct MatchOp : public Op {
 
 struct MatchRangeOp : public Op {
   MatchRangeOp(char a_, char b_) : a(a_), b(b_) {}
-  operator()(string &data, GSS &gss, RuleRef node, int index) {
+  void operator()(string &data, GSS &gss, queue<Descriptor> &queue, NodeRef node, int index) {
     if (data[index] >= a && data[index] <= b)
-      gss.add_descriptor(Descriptor{index+1, node});
+      queue.push(Descriptor{index+1, node});
   }
 
   char a, b;
 };
 
-struct SpawnOp {
-  SpawnOp(vector<int> spawn_rules_) : spawn_rules(spawn_rules_)
-  operator()(string &data, GSS &gss, RuleRef node, int index) {
+struct SpawnOp : public Op {  
+  SpawnOp() {}
+
+  SpawnOp(vector<int> spawn_rules_) : spawn_rules(spawn_rules_) {}
+  void operator()(string &data, GSS &gss, queue<Descriptor> &queue, NodeRef node, int index) {
     for (int rule : spawn_rules)
-      gss.add_link(node, RuleRef{rule, index});
+      gss.add_link(node, NodeRef{rule, index});
   }
 
   vector<int> spawn_rules;
 };
 
-struct SequenceOp {
-  SpawnOp(){}
-  SpawnOp(vector<int> spawn_rules_) : spawn_rules(spawn_rules_)
-  operator()(string &data, GSS &gss, RuleRef node, int index) {
+struct SequenceOp : public Op {
+  SequenceOp(){}
+  SequenceOp(vector<int> spawn_rules_) : spawn_rules(spawn_rules_){}
+  void operator()(string &data, GSS &gss, queue<Descriptor> &queue, NodeRef node, int index) {
     for (int rule : spawn_rules)
-      gss.add_link(node, RuleRef{rule, index});
+      gss.add_link(node, NodeRef{rule, index});
   }
 
   vector<int> spawn_rules;
@@ -100,7 +109,7 @@ struct SequenceOp {
 struct Grammar {
   vector<Op*> ops;
 
-  int add_rule(Ops *rule) {
+  int add_rule(Op *rule) {
     int index = ops.size();
     ops.push_back(rule);
     return index;
@@ -127,7 +136,7 @@ Grammar compile(GrammerDef gramdef) {
 
   //populating name to index map
   for (auto &name : names) {
-    map[name] = map.size()
+    nr[name] = nr.size();
   }
 
   //start subrule counter
@@ -138,29 +147,23 @@ Grammar compile(GrammerDef gramdef) {
     
 
     for (string desc : rule_def.second) {
-
-      vector<Ops> ops;
-
       istringstream iss(desc);
       vector<string> descriptions;
       copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(descriptions));
 
-      for (auto &desc : descriptions) {
-        copy(istream_iterator<string>(iss), istream_iterator<string>(), back_inserter(name));
+      ((SpawnOp*)grammar.ops[main_rule_nr])->spawn_rules.push_back(subrule);
 
-        ((SpanOp*)grammar.ops[rule_nr]).spawn_rules.push_back(subrule);
-
-        for (size_t i(0); i < names.size(); ++i) {
-          if (names.count(name)) {
-            if (i != names.size() - 1)
-              grammar.ops[subrule] = new SequenceOp(vector<int>{nr[sub], subrule + 1});
+      for (size_t i(0); i < descriptions.size(); ++i) {
+        string &name = descriptions[i];
+        if (names.count(name)) { //a rule is matched
+          if (i != names.size() - 1) //if not last
+              grammar.ops[subrule] = new SequenceOp(vector<int>{nr[name], subrule + 1});
             else
-              grammar.ops[subrule] = new SequenceOp(vector<int>{nr[sub]});
-          } else {
-            grammar.ops[subrule] = new MatchOp(name);
-          }
-          subrule++;
+              grammar.ops[subrule] = new SequenceOp(vector<int>{nr[name]});
+        } else {  //its a new rule
+          grammar.ops[subrule] = new MatchOp(name);
         }
+        subrule++;
       }
     }
   }
@@ -171,11 +174,27 @@ struct Parser {
   }
 
   void parse(string input) {
+    data = input;
 
+    while (q.size())
+      step();
+
+  }
+
+  void add_descriptor(Descriptor &descriptor) {
+    q.push(descriptor);
+  }
+
+  void step() {
+    Descriptor current = q.front();
+    q.pop();
+    (*grammar.ops[current.ref.rule])(data, gss, q, current.ref, current.index);
   }
 
   GSS gss;
   Grammar grammar;
+  queue<Descriptor> q;
+  string data;
 };
 
 int main(int argc, char **argv) {
