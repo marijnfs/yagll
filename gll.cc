@@ -23,6 +23,10 @@ struct Node {
   }
 };
 
+ostream &operator<<(ostream &out, Node node) {
+  return out << "[" << node.rule << "," << node.i << "]";
+}
+
 struct Descriptor {
   int node_id;
   Node node;
@@ -32,8 +36,11 @@ struct Descriptor {
   }
 };
 
-typedef priority_queue<Descriptor> DescriptorQueue;
+ostream &operator<<(ostream &out, Descriptor d) {
+  return out << "[" << d.node_id << ":" << d.node.rule << "," << d.node.i << "]";
+}
 
+typedef priority_queue<Descriptor> DescriptorQueue;
 
 struct GSS {
   map<Node, int> reverse_map;
@@ -48,6 +55,7 @@ struct GSS {
     reverse_map[ref] = idx;
     nodes.push_back(ref);
     parents.push_back(node_parents);
+    end_indices.push_back(set<int>());
     return idx;
   }
 
@@ -86,6 +94,7 @@ struct Op;
 struct Grammar {
   vector<Op*> ops;
   map<string, int> rule_map;
+  string start_rule;
   
   int add_rule(Op *rule) {
     int index = ops.size();
@@ -106,30 +115,43 @@ struct Grammar {
   }
 };
 
-void add_node(Node node, set<int> &parents, GSS &gss, Grammar &grammar, DescriptorQueue &q);
+
+void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, DescriptorQueue &q);
 
 //the next helper function
-vector<Node> spawn_next(int nodeidx, int input_idx, GSS &gss, Grammar &grammar, DescriptorQueue &q) {
+void spawn_next(int nodeidx, int input_idx, GSS &gss, Grammar &grammar, DescriptorQueue &q) {
   queue<int> node_queue;
   node_queue.push(nodeidx);
+  cout << "spawn" << endl;
   
   while (node_queue.size()) {
+
     int idx = node_queue.front(); node_queue.pop();
     Node node = gss[idx];
     int rule = node.rule + 1;
+
+    cout << "spawn " << rule << endl;
     if (grammar.ops[rule] == 0) {
+      cout << "idx " << idx << endl;
       set<int> &parents(gss.parents[idx]);
-      for (int p : parents)
+      cout << parents.size() << endl;
+      for (int p : parents) {
+	cout << p << endl;
 	node_queue.push(p);
-      for (int p : parents) //parents were popped, add end indices
+      }
+      for (int p : parents) {//parents were popped, add end indices
+	cout << p << " - " << gss.end_indices.size() << endl;
 	gss.end_indices[p].insert(input_idx);
+      }
     } else {
+      cout << "adding node" << endl;
+      cout << idx << " " << gss.parents.size() << endl;
       add_node(Node{rule, input_idx}, gss.parents[idx], gss, grammar, q);
     }
   }
 }
 
-void add_node(Node node, set<int> &parents, GSS &gss, Grammar &grammar, DescriptorQueue &q) {
+void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, DescriptorQueue &q) {
   int idx = gss.add_node(node, parents);
   if (idx == -1) { //node exists
     idx = gss[node];
@@ -144,12 +166,19 @@ void add_node(Node node, set<int> &parents, GSS &gss, Grammar &grammar, Descript
     //spawn descriptor, could add set here to see if it was added already
     q.push(Descriptor{idx, node});
   }
+
 }
 
 //Ops are also the algorithm responsibles and have access to everything
 struct Op {
   virtual void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q){}
+  virtual void print(ostream &out){}
 };
+
+ostream &operator<<(ostream &out, Op &op) {
+  op.print(out);
+  return out;
+}
 
 struct MatchOp : public Op {
   MatchOp() {}
@@ -157,7 +186,9 @@ struct MatchOp : public Op {
     int n = match(input, index);
     if (n >= 0) {
       index += n;
+      cout << "bla" << node_idx << " " << index << endl;
       spawn_next(node_idx, index, gss, grammar, q);
+      cout << "asd" << endl;
     }
   }
 
@@ -174,12 +205,16 @@ struct MatchStringOp : public MatchOp {
       return token.size();
     return -1;
   }
+
+  virtual void print(ostream &out) {
+    out << "Match: " << token;
+  }
   
   string token;
 };
 
-  struct MatchRangeOp : public MatchOp {
-    MatchRangeOp(char a_, char b_) : a(a_), b(b_) {}
+struct MatchRangeOp : public MatchOp {
+  MatchRangeOp(char a_, char b_) : a(a_), b(b_) {}
   
   virtual int match(string &input, int index) {
     if (index >= input.size())
@@ -187,6 +222,10 @@ struct MatchStringOp : public MatchOp {
     if (input[index] >= a && input[index] <= b)
       return 1;
     return -1;
+  }
+
+    virtual void print(ostream &out) {
+      out << "Match: [" << a << "-" << b < "]";
   }
 
   char a, b;
@@ -200,14 +239,21 @@ struct SpawnOp : public Op {
 
   void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q) {
     for (int rule : spawn_rules) {
+      cout << "spawning " << rule << endl;
       Node node{rule, index};
-      add_node(node, gss.parents[node_idx], gss, grammar, q);
+      add_node(node, set<int>{node_idx}, gss, grammar, q);
     }
   }
 
   void add_rule(int rule_id) {
     spawn_rules.push_back(rule_id);
   }
+
+  virtual void print(ostream &out) {
+    out << "Spawn: ";
+    for (auto r : spawn_rules) out << r << ",";
+  }
+
   
   vector<int> spawn_rules;
 };
@@ -215,19 +261,36 @@ struct SpawnOp : public Op {
 struct EndOp : public Op {
   EndOp() {}
   void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q) {
+    cout << "End Op" << endl;
     if (index == input.size())
       throw "matched";
   }
+
+  virtual void print(ostream &out) {
+    out << "End";
+  }
 };
- 
+
+ostream &operator<<(ostream &out, Grammar &grammar) {
+  int c(0);
+  for (auto op : grammar.ops) {
+    if (op)
+      cout << c << " " << (*op) << endl;
+    else
+      cout << c << " 0" << endl;
+    ++c;
+  }
+  return out;
+}
+
 //Compile stuff for building a base grammar
 typedef map<string, vector<string>> GrammerDef;
 
-Grammar compile(GrammerDef gramdef) {
+Grammar compile(GrammerDef gramdef, string start_rule) {
   Grammar grammar;
+  grammar.start_rule = start_rule;
 
   map<string, int> rule_map;
-
 
   //first pass, counting named rules
   int n_rules = 0;
@@ -235,8 +298,8 @@ Grammar compile(GrammerDef gramdef) {
     string name = rule_def.first;
     int rule_id = grammar.add_rule(new SpawnOp());
     rule_map[name] = rule_id;
-    
-    grammar.add_rule(new SpawnOp());
+    if (name == start_rule)
+      grammar.add_rule(new EndOp());
     grammar.add_stop();
   }
 
@@ -245,7 +308,7 @@ Grammar compile(GrammerDef gramdef) {
     vector<string> &spawn_strings = rule_def.second;
     int main_rule_nr = rule_map[name]; //index of main rule
     
-    SpawnOp* rule_spawner = new SpawnOp();
+    SpawnOp &rule_spawner = reinterpret_cast<SpawnOp&>(*grammar.ops[main_rule_nr]);
 
     for (string desc : rule_def.second) { //for each spawn string
       //split the spawn string in elements
@@ -262,13 +325,10 @@ Grammar compile(GrammerDef gramdef) {
           rule_id = grammar.add_rule(new MatchStringOp(name));
         }
 	if (i == 0)
-	  rule_spawner->add_rule(rule_id);
+	  rule_spawner.add_rule(rule_id);
       }
       grammar.add_stop();
     }
-
-    grammar.add_rule(rule_spawner);
-    grammar.add_stop();
   }
 
   grammar.rule_map = rule_map;
@@ -277,13 +337,18 @@ Grammar compile(GrammerDef gramdef) {
 
 struct Parser {
   Parser(Grammar &grammar_) : grammar(grammar_) {
+    int start_rule = grammar.get_rule(grammar.start_rule);
+    Node start_node = Node{start_rule, 0};
+    int start_node_idx = gss.add_node(Node{start_rule, 0});
+    q.push(Descriptor{start_node_idx, start_node});
   }
 
   void parse(string input_) {
     input = input_;
 
-    while (q.size())
+    while (q.size()) {
       step();
+    }
 
   }
 
@@ -294,6 +359,7 @@ struct Parser {
   void step() {
     Descriptor head = q.top();
     q.pop();
+    cout << head << endl;
     (*grammar.ops[head.node.rule])(head.node, head.node_id, head.node.i, input, grammar, gss, q);
   }
 
@@ -311,12 +377,14 @@ int main(int argc, char **argv) {
   cout << "Starting" << endl;
 
   GrammerDef grammar_def;
-  grammar_def["S"] = vector<string>{"A S d", "B S"};
+  grammar_def["S"] = vector<string>{"A S d", "B S", "a"};
   grammar_def["A"] = vector<string>{"a", "c"};
   grammar_def["B"] = vector<string>{"a", "b"};
   
-  auto grammar = compile(grammar_def);
-
+  auto grammar = compile(grammar_def, "S");
+  cout << grammar << endl;
+  cout << "starting parse" << endl;
   Parser parser(grammar);
   parser.parse("aad");
+  cout << parser.gss.nodes.size() << endl;
 }
