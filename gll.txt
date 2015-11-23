@@ -1,0 +1,71 @@
+a a d
+
+S[0]
+S0[0]
+A[0] S[1]          d[2]
+a[0] S1[1]
+     B[1]  S[2]
+     a[1]  S2[2]
+           eps[2]
+
+S[0]
+B[0]  S[1]
+a[0]  A[1]  S[2]   d[2]
+      a[1]  eps[2]
+
+
+S = ASd | BS | eps
+A = a | c
+B = a | b
+
+
+S = S0 | S1 | S2
+S0 = A S d
+S1 = B S
+S2 = eps
+A = A0 | A1
+A0 = a
+A1 = b
+B = B0 | B1
+B0 = a
+B1 = c
+
+next():
+	does current rule have next?
+	+	spawn next
+	-	go up to parent (pop), find next (can have several parents to follow). Spawn next
+
+step():
+	is current node ...?
+	[spawner]	spawn all subnodes 
+	[matcher]
+		n_matched = match()
+		n_matches >= 0?
+			next()
+
+
+data struct of rule set:
+	vector of pointers to rules;
+	sets of rules 0 delimited
+
+data struct of gll:
+	vector of nodes
+	node has rule id, start index, parents (children?), pop/end indexes?
+	parents / children: vector of int (to index of nodes)
+	
+	is node popped? : vector of bool
+	needs map indexed by {rule, start index} to find already created nodes
+
+	simple solution: vector of nodes + backwards map towards index (overload index operator?)
+
+data struct of parser:
+	queue of heads, sorted by index, rule id
+	head has node index (thus access to rule). Index at node should be current index, so no need to store separately
+
+rules:
+	Two rules:
+	operator() function, recieves nodeid, ruleid, index, parents (vec of nodeid), gll, queue of heads, input string
+	[Spawner] Spawns set of rules at index; checks if they exist and if popped, act accordingly
+	[Matcher] Implements a virtual match() function, returns -1 if no match, otherwise nr of matched characters
+		  Implements next function-1
+		  
