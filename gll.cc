@@ -330,7 +330,9 @@ Grammar compile(GrammerDef gramdef, string start_rule) {
 	int rule_id = 0;
         if (grammar.rule_map.count(name)) { //a rule is matched
 	  rule_id = grammar.add_rule(new SpawnOp(grammar.get_rule(name)));
-        } else {  //its a new rule
+        } else if(name.size() == 3 && name.find("-") == 1) {
+	  rule_id = grammar.add_rule(new MatchRangeOp(name[0], name[2]));
+	} else {  //its a new rule
           rule_id = grammar.add_rule(new MatchStringOp(name));
         }
 	if (i == 0)
@@ -378,22 +380,24 @@ struct Parser {
 };
 
 int main(int argc, char **argv) {
-  // assert(argc == 2);
+  assert(argc == 2);
 
-  //string str(argv[1]);
+  string str(argv[1]);
 
   cout << "Starting" << endl;
 
   GrammerDef grammar_def;
-  grammar_def["S"] = vector<string>{"A S d", "B S", "a"};
-  grammar_def["A"] = vector<string>{"a", "c"};
-  grammar_def["B"] = vector<string>{"a", "b"};
+  grammar_def["S"] = vector<string>{"def name", "def number"};
+  grammar_def["name"] = vector<string>{"name A-z", "A-z"};
+  grammar_def["number"] = vector<string>{"number 0-9", "0-9"};
   
   auto grammar = compile(grammar_def, "S");
   cout << grammar << endl;
   cout << "starting parse" << endl;
   Parser parser(grammar);
-  parser.parse("cbaabbbbbad");
+  
+  parser.parse(str);
+  
   cout << parser.gss << endl;
   cout << "n nodes: " << parser.gss.nodes.size() << endl;
 
