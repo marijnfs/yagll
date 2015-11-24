@@ -204,14 +204,14 @@ struct MatchOp : public Op {
     }
   }
 
-  virtual int match(string &input, int index) {return -1;}
+  virtual int match(string const &input, int index) {return -1;}
 };
   
 struct MatchStringOp : public MatchOp {
   MatchStringOp(string token_) : token(token_) {}
   ~MatchStringOp(){}
   
-  virtual int match(string &input, int index) {
+  virtual int match(string const &input, int index) {
     if (token.size() + index > input.size()) {//doesnt fit
       cout << index << " doesn't fit" << endl;
       return -1;
@@ -231,11 +231,40 @@ struct MatchStringOp : public MatchOp {
   string token;
 };
 
+struct MatchRegexOp : public MatchOp {
+  MatchRegexOp(string expr_) : expr(expr_) {
+    try {
+      reg = regex(expr);
+    } catch (regex_error &err) {
+      cerr << "regex err code: " << err.code() << endl;
+      throw err;
+    }
+  }
+  ~MatchRegexOp(){}
+  
+  virtual int match(string const &input, int index) {
+    if (index >= input.size())
+      return -1;
+    std::cmatch m;
+    if (!regex_search(input.c_str() + index, input.c_str() + input.size(), m, reg))
+      return -1;
+    cout << "reg matched: " << m.length() << endl;
+    return m.length();
+  }
+
+  virtual void print(ostream &out) {
+    out << "RegexMatch: [" << expr << "]";
+  }
+  
+  regex reg;
+  string expr;
+};
+
 struct MatchRangeOp : public MatchOp {
   MatchRangeOp(char a_, char b_) : a(a_), b(b_) {}
   ~MatchRangeOp(){}
   
-  virtual int match(string &input, int index) {
+  virtual int match(string const &input, int index) {
     if (index >= input.size())
       return -1;
     if (input[index] >= a && input[index] <= b)
@@ -295,7 +324,7 @@ struct EndOp : public Op {
 	cur = *gss.trace[cur].begin();
       }
       for (auto it = traceback.rbegin(); it != traceback.rend(); it++)
-	cout << *it << " ";
+	cout << *it << "-" << gss.nodes[*it].i << ":" << gss.nodes[*it].rule << " ";
       cout << endl;
     }
   }
@@ -370,7 +399,8 @@ Grammar compile(GrammerDef gramdef, string start_rule) {
         } else if(name.size() == 3 && name.find("-") == 1) {
 	  rule_id = grammar.add_rule(new MatchRangeOp(name[0], name[2]));
 	} else {  //its a new rule
-          rule_id = grammar.add_rule(new MatchStringOp(name));
+          //rule_id = grammar.add_rule(new MatchStringOp(name));
+	  rule_id = grammar.add_rule(new MatchRegexOp(name));
         }
 	if (i == 0)
 	  rule_spawner.add_rule(rule_id);
@@ -417,31 +447,16 @@ struct Parser {
 };
 
 int main(int argc, char **argv) {
-  try {
-    std::regex e(".*", regex_constants::ECMAScript);
-    string s("this");
-    std::smatch m;
-    cout << "start" << endl;
-    cout << regex_search(s, m, e) << endl;//, regex_constants::match_continuous) << endl;
-    //cout << regex_match(s, m, e) << endl;//, regex_constants::match_continuous) << endl;
-    cout << m.length() << " " << m.size() << endl;
-  } catch (std::regex_error& e) {
-    cout << "err" << (e.code() == regex_constants::error_brack) << endl;
-  }
-  return 1;
-
   assert(argc == 2);
-
   string str(argv[1]);
 
   cout << "Starting" << endl;
 
   GrammerDef grammar_def;
-  grammar_def["S"] = vector<string>{"def name", "def number"};
-  grammar_def["name"] = vector<string>{"subname"};
-  grammar_def["subname"] = vector<string>{"subname A-z", "A-z"};
-  grammar_def["number"] = vector<string>{"subnumber"};
-  grammar_def["subnumber"] = vector<string>{"subnumber 0-9", "0-9"};
+  grammar_def["S"] = vector<string>{"def white name", "def white number"};
+  grammar_def["name"] = vector<string>{"[a-zA-Z][a-zA-Z0-9]+"};
+  grammar_def["number"] = vector<string>{"[0-9]+"};
+  grammar_def["white"] = vector<string>{"[[:space:]\\t\\n]+"};
   
   auto grammar = compile(grammar_def, "S");
   cout << grammar << endl;

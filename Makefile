@@ -1,2 +1,2 @@
 all:
-	g++ -std=c++11 -g -o gll *.cc
+	g++ -std=c++14 -g -o gll *.cc
