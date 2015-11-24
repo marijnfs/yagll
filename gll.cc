@@ -283,8 +283,20 @@ struct EndOp : public Op {
 
   void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q) {
     cout << "End Op " << index << endl;
-    if (index == input.size())
-      cout << "matched" << endl;;
+    if (index == input.size()) {
+      cout << "matched" << endl;
+      vector<int> traceback;
+      int cur = node_idx;
+      while (true) {
+	traceback.push_back(cur);
+	if (!gss.trace[cur].size())
+	  break;
+	cur = *gss.trace[cur].begin();
+      }
+      for (auto it = traceback.rbegin(); it != traceback.rend(); it++)
+	cout << *it << " ";
+      cout << endl;
+    }
   }
 
   virtual void print(ostream &out) {
@@ -412,8 +424,10 @@ int main(int argc, char **argv) {
 
   GrammerDef grammar_def;
   grammar_def["S"] = vector<string>{"def name", "def number"};
-  grammar_def["name"] = vector<string>{"name A-z", "A-z"};
-  grammar_def["number"] = vector<string>{"number 0-9", "0-9"};
+  grammar_def["name"] = vector<string>{"subname"};
+  grammar_def["subname"] = vector<string>{"subname A-z", "A-z"};
+  grammar_def["number"] = vector<string>{"subnumber"};
+  grammar_def["subnumber"] = vector<string>{"subnumber 0-9", "0-9"};
   
   auto grammar = compile(grammar_def, "S");
   cout << grammar << endl;
@@ -424,5 +438,5 @@ int main(int argc, char **argv) {
   
   cout << parser.gss << endl;
   cout << "n nodes: " << parser.gss.nodes.size() << endl;
-
+  
 }
