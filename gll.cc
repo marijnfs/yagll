@@ -11,7 +11,6 @@
 
 using namespace std;
 
-
 struct Node {
   int rule, i;
 
@@ -56,7 +55,8 @@ struct GSS {
   vector<Node> nodes;
   vector<set<int>> parents;
   vector<set<int>> end_indices;
-
+  vector<set<int>> trace;
+  
   int add_node(Node ref, set<int> node_parents = set<int>()) {
     if (reverse_map.count(ref))
       return -1;
@@ -65,6 +65,7 @@ struct GSS {
     nodes.push_back(ref);
     parents.push_back(node_parents);
     end_indices.push_back(set<int>());
+    trace.push_back(set<int>());
     return idx;
   }
 
@@ -89,12 +90,15 @@ struct GSS {
 
 ostream &operator<<(ostream &out, GSS &gss) {
   for (size_t i(0); i < gss.nodes.size(); ++i) {
-    out << i << ": " << gss.nodes[i].rule << " " << gss.nodes[i].i << "-";
+    out << i << ": r" << gss.nodes[i].rule << " i" << gss.nodes[i].i << "-";
     for (int e : gss.end_indices[i])
       out << e << ",";
     out << " p:";
     for (int p : gss.parents[i])
       out << p << ",";
+    out << " t:";
+    for (int t : gss.trace[i])
+      cout << t << ",";
     out << endl;
   }
 
@@ -107,6 +111,8 @@ struct Grammar {
   vector<Op*> ops;
   map<string, int> rule_map;
   string start_rule;
+
+  //~Grammar();
   
   int add_rule(Op *rule) {
     int index = ops.size();
@@ -128,10 +134,10 @@ struct Grammar {
 };
 
 
-void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, DescriptorQueue &q);
+void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, DescriptorQueue &q, int from_node);
 
 //the next helper function
-void spawn_next(int nodeidx, int input_idx, GSS &gss, Grammar &grammar, DescriptorQueue &q) {
+void spawn_next(int nodeidx, int input_idx, GSS &gss, Grammar &grammar, DescriptorQueue &q, int from_node) {
   queue<int> node_queue;
   node_queue.push(nodeidx);
   
@@ -149,12 +155,12 @@ void spawn_next(int nodeidx, int input_idx, GSS &gss, Grammar &grammar, Descript
 	gss.end_indices[p].insert(input_idx);
       }
     } else {
-      add_node(Node{rule, input_idx}, gss.parents[idx], gss, grammar, q);
+      add_node(Node{rule, input_idx}, gss.parents[idx], gss, grammar, q, from_node);
     }
   }
 }
 
-void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, DescriptorQueue &q) {
+void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, DescriptorQueue &q, int from_node) {
   int idx = gss.add_node(node, parents);
   if (idx == -1) { //node exists
     idx = gss[node];
@@ -163,18 +169,20 @@ void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, Descripto
       node_parents.insert(p);
     if (gss.has_ends(idx)) {
       for (int e : gss.end_indices[idx])
-	spawn_next(idx, e, gss, grammar, q);
+	spawn_next(idx, e, gss, grammar, q, from_node);
     }
   } else {
     //spawn descriptor, could add set here to see if it was added already
     cout << "adding " << Descriptor{idx, node} << endl;
     q.push(Descriptor{idx, node});
+    gss.trace[idx].insert(from_node);
   }
 
 }
 
 //Ops are also the algorithm responsibles and have access to everything
 struct Op {
+  virtual ~Op(){}
   virtual void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q){}
   virtual void print(ostream &out){}
 };
@@ -186,11 +194,12 @@ ostream &operator<<(ostream &out, Op &op) {
 
 struct MatchOp : public Op {
   MatchOp() {}
+  ~MatchOp(){}
   void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q) {
     int n = match(input, index);
     if (n >= 0) {
       index += n;
-      spawn_next(node_idx, index, gss, grammar, q);
+      spawn_next(node_idx, index, gss, grammar, q, node_idx);
     }
   }
 
@@ -199,7 +208,8 @@ struct MatchOp : public Op {
   
 struct MatchStringOp : public MatchOp {
   MatchStringOp(string token_) : token(token_) {}
-
+  ~MatchStringOp(){}
+  
   virtual int match(string &input, int index) {
     if (token.size() + index > input.size()) {//doesnt fit
       cout << index << " doesn't fit" << endl;
@@ -222,6 +232,7 @@ struct MatchStringOp : public MatchOp {
 
 struct MatchRangeOp : public MatchOp {
   MatchRangeOp(char a_, char b_) : a(a_), b(b_) {}
+  ~MatchRangeOp(){}
   
   virtual int match(string &input, int index) {
     if (index >= input.size())
@@ -241,13 +252,15 @@ struct MatchRangeOp : public MatchOp {
   
 struct SpawnOp : public Op {  
   SpawnOp() {}
+  ~SpawnOp(){}
+  
   SpawnOp(int spawn_rule) {spawn_rules.push_back(spawn_rule); }
   SpawnOp(vector<int> spawn_rules_) : spawn_rules(spawn_rules_) {}
 
   void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q) {
     for (int rule : spawn_rules) {
       Node node{rule, index};
-      add_node(node, set<int>{node_idx}, gss, grammar, q);
+      add_node(node, set<int>{node_idx}, gss, grammar, q, node_idx);
     }
   }
 
@@ -266,10 +279,12 @@ struct SpawnOp : public Op {
 
 struct EndOp : public Op {
   EndOp() {}
+  ~EndOp(){}
+
   void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q) {
     cout << "End Op " << index << endl;
     if (index == input.size())
-      throw "matched";
+      cout << "matched" << endl;;
   }
 
   virtual void print(ostream &out) {
@@ -288,6 +303,15 @@ ostream &operator<<(ostream &out, Grammar &grammar) {
   }
   return out;
 }
+
+/*Grammar::~Grammar() {
+  int c(0);
+  for (auto &op : ops) {
+    cout << c++ << " " << op << endl;
+    if (op)
+      delete op;
+  }
+  }*/
 
 //Compile stuff for building a base grammar
 typedef map<string, vector<string>> GrammerDef;
