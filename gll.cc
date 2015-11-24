@@ -8,6 +8,7 @@
 #include <set>
 #include <queue>
 #include <cassert>
+#include <regex>
 
 using namespace std;
 
@@ -416,6 +417,19 @@ struct Parser {
 };
 
 int main(int argc, char **argv) {
+  try {
+    std::regex e(".*", regex_constants::ECMAScript);
+    string s("this");
+    std::smatch m;
+    cout << "start" << endl;
+    cout << regex_search(s, m, e) << endl;//, regex_constants::match_continuous) << endl;
+    //cout << regex_match(s, m, e) << endl;//, regex_constants::match_continuous) << endl;
+    cout << m.length() << " " << m.size() << endl;
+  } catch (std::regex_error& e) {
+    cout << "err" << (e.code() == regex_constants::error_brack) << endl;
+  }
+  return 1;
+
   assert(argc == 2);
 
   string str(argv[1]);
