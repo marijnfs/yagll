@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include <fstream>
 #include <iterator>
 #include <algorithm>
 #include <vector>
@@ -174,7 +175,7 @@ void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, Descripto
     }
   } else {
     //spawn descriptor, could add set here to see if it was added already
-    cout << "adding " << Descriptor{idx, node} << endl;
+    //cout << "adding " << Descriptor{idx, node} << endl;
     q.push(Descriptor{idx, node});
     gss.trace[idx].insert(from_node);
   }
@@ -213,12 +214,12 @@ struct MatchStringOp : public MatchOp {
   
   virtual int match(string const &input, int index) {
     if (token.size() + index > input.size()) {//doesnt fit
-      cout << index << " doesn't fit" << endl;
+      //cout << index << " doesn't fit" << endl;
       return -1;
     }
-    cout << "comparing " << token << " " << input << " " << index << endl;
+    //cout << "comparing " << token << " " << input << " " << index << endl;
     if (input.compare(index, token.size(), token) == 0) {
-      cout << "matched: " << token << " at " << index << endl;
+      //cout << "matched: " << token << " at " << index << endl;
       return token.size();
     }
     return -1;
@@ -248,7 +249,7 @@ struct MatchRegexOp : public MatchOp {
     std::cmatch m;
     if (!regex_search(input.c_str() + index, input.c_str() + input.size(), m, reg))
       return -1;
-    cout << "reg matched: " << m.length() << endl;
+    //cout << "reg matched: " << m.length() << endl;
     return m.length();
   }
 
@@ -312,7 +313,7 @@ struct EndOp : public Op {
   ~EndOp(){}
 
   void operator()(Node node, int node_idx, int index, string &input, Grammar &grammar, GSS &gss, DescriptorQueue &q) {
-    cout << "End Op " << index << endl;
+    //cout << "End Op " << index << endl;
     if (index == input.size()) {
       cout << "matched" << endl;
       vector<int> traceback;
@@ -436,7 +437,9 @@ struct Parser {
   void step() {
     Descriptor head = q.top();
     q.pop();
-    cout << head << endl;
+    //if (head.node.i % 100 == 0)
+      cout << head.node.i << endl;
+    //cout << head << endl;
     (*grammar.ops[head.node.rule])(head.node, head.node_id, head.node.i, input, grammar, gss, q);
   }
 
@@ -448,22 +451,33 @@ struct Parser {
 
 int main(int argc, char **argv) {
   assert(argc == 2);
-  string str(argv[1]);
+  string filename(argv[1]);
 
+  std::ifstream t(filename.c_str());
+  t.seekg(0, std::ios::end);
+  size_t size = t.tellg();
+  std::string buffer(size, ' ');
+  t.seekg(0);
+  t.read(&buffer[0], size);
+  
   cout << "Starting" << endl;
 
   GrammerDef grammar_def;
-  grammar_def["S"] = vector<string>{"def white name", "def white number"};
-  grammar_def["name"] = vector<string>{"[a-zA-Z][a-zA-Z0-9]+"};
-  grammar_def["number"] = vector<string>{"[0-9]+"};
+  grammar_def["S"] = vector<string>{"thing", "S thing"};
+  grammar_def["thing"] = vector<string>{"[[:graph:]]+", "white"};
   grammar_def["white"] = vector<string>{"[[:space:]\\t\\n]+"};
+  
+  //grammar_def["S"] = vector<string>{"def white name", "def white number"};
+  //grammar_def["name"] = vector<string>{"[a-zA-Z][a-zA-Z0-9]+"};
+  //grammar_def["number"] = vector<string>{"[0-9]+"};
+  //grammar_def["white"] = vector<string>{"[[:space:]\\t\\n]+"};
   
   auto grammar = compile(grammar_def, "S");
   cout << grammar << endl;
   cout << "starting parse" << endl;
   Parser parser(grammar);
   
-  parser.parse(str);
+  parser.parse(buffer);
   
   cout << parser.gss << endl;
   cout << "n nodes: " << parser.gss.nodes.size() << endl;
