@@ -10,6 +10,7 @@
 #include <queue>
 #include <cassert>
 #include <regex>
+#include <re2/re2.h>
 
 using namespace std;
 
@@ -73,10 +74,6 @@ struct GSS {
 
   bool has_ends(int nodeidx) {
     return end_indices[nodeidx].size();
-  }
-
-  void add_end(int nodeidx, int index) {
-    end_indices[nodeidx].insert(index);
   }
 
   Node operator[](int idx) {
@@ -151,12 +148,15 @@ void spawn_next(int nodeidx, int input_idx, GSS &gss, Grammar &grammar, Descript
     if (grammar.ops[rule] == 0) {
       set<int> &parents(gss.parents[idx]);
       for (int p : parents) {
+	auto res = gss.end_indices[p].emplace(input_idx);
+	//if (res.second) //insertion succeeded
 	node_queue.push(p);
       }
-      for (int p : parents) {//parents were popped, add end indices
-	gss.end_indices[p].insert(input_idx);
-      }
+      //for (int p : parents) {//parents were popped, add end indices
+
+      //}
     } else {
+      //cout << "adding " << Node{rule, input_idx} << endl;
       add_node(Node{rule, input_idx}, gss.parents[idx], gss, grammar, q, from_node);
     }
   }
@@ -170,8 +170,11 @@ void add_node(Node node, set<int> parents, GSS &gss, Grammar &grammar, Descripto
     for (auto p : parents)
       node_parents.insert(p);
     if (gss.has_ends(idx)) {
-      for (int e : gss.end_indices[idx])
+      for (int e : gss.end_indices[idx]) {
+	//cout << "adding from " << node << " e" << e << endl;
 	spawn_next(idx, e, gss, grammar, q, from_node);
+
+      }
     }
   } else {
     //spawn descriptor, could add set here to see if it was added already
@@ -219,7 +222,7 @@ struct MatchStringOp : public MatchOp {
     }
     //cout << "comparing " << token << " " << input << " " << index << endl;
     if (input.compare(index, token.size(), token) == 0) {
-      //cout << "matched: " << token << " at " << index << endl;
+      cout << "matched: " << token << " at " << index << endl;
       return token.size();
     }
     return -1;
@@ -233,31 +236,30 @@ struct MatchStringOp : public MatchOp {
 };
 
 struct MatchRegexOp : public MatchOp {
-  MatchRegexOp(string expr_) : expr(expr_) {
-    try {
-      reg = regex(expr);
-    } catch (regex_error &err) {
-      cerr << "regex err code: " << err.code() << endl;
-      throw err;
-    }
+  MatchRegexOp(string expr_) : expr(expr_), reg(expr_) {
+    if (!reg.ok())
+      throw reg.error();
+    matches.resize(1); //we reuse vector for optimisation
   }
+
   ~MatchRegexOp(){}
   
   virtual int match(string const &input, int index) {
     if (index >= input.size())
       return -1;
-    std::cmatch m;
-    if (!regex_search(input.c_str() + index, input.c_str() + input.size(), m, reg))
-      return -1;
-    //cout << "reg matched: " << m.length() << endl;
-    return m.length();
+    if (reg.Match(input, index, input.size(), RE2::ANCHOR_START, &matches[0], 1)) {
+      //cout << "match " << matches[0].length() << " " << expr << " input:" << input.substr(index, index+10) << " i:" << index << endl;
+	return matches[0].length();
+    }
+    return -1;
   }
 
   virtual void print(ostream &out) {
     out << "RegexMatch: [" << expr << "]";
   }
   
-  regex reg;
+  RE2 reg;
+  vector<re2::StringPiece> matches;
   string expr;
 };
 
@@ -325,7 +327,7 @@ struct EndOp : public Op {
 	cur = *gss.trace[cur].begin();
       }
       for (auto it = traceback.rbegin(); it != traceback.rend(); it++)
-	cout << *it << "-" << gss.nodes[*it].i << ":" << gss.nodes[*it].rule << " ";
+	cout << gss.nodes[*it].i << "-r" << gss.nodes[*it].rule << " ";
       cout << endl;
     }
   }
@@ -437,8 +439,11 @@ struct Parser {
   void step() {
     Descriptor head = q.top();
     q.pop();
-    //if (head.node.i % 100 == 0)
-      cout << head.node.i << endl;
+    //if (head.node.i % 100 == 0) {
+    //cout << "i: " << head.node.i << " r:" << head.node.rule << endl;
+    //cout << "nodes: " << gss.nodes.size() << endl;
+    //cout << "q: " << q.size() << endl;
+      //}
     //cout << head << endl;
     (*grammar.ops[head.node.rule])(head.node, head.node_id, head.node.i, input, grammar, gss, q);
   }
@@ -464,8 +469,8 @@ int main(int argc, char **argv) {
 
   GrammerDef grammar_def;
   grammar_def["S"] = vector<string>{"thing", "S thing"};
-  grammar_def["thing"] = vector<string>{"[[:graph:]]+", "white"};
-  grammar_def["white"] = vector<string>{"[[:space:]\\t\\n]+"};
+  grammar_def["thing"] = vector<string>{"[\\S]+", "white"};
+  grammar_def["white"] = vector<string>{"[\\s]+"};
   
   //grammar_def["S"] = vector<string>{"def white name", "def white number"};
   //grammar_def["name"] = vector<string>{"[a-zA-Z][a-zA-Z0-9]+"};
@@ -474,12 +479,13 @@ int main(int argc, char **argv) {
   
   auto grammar = compile(grammar_def, "S");
   cout << grammar << endl;
+  //return 0;
   cout << "starting parse" << endl;
   Parser parser(grammar);
   
   parser.parse(buffer);
   
-  cout << parser.gss << endl;
+  //cout << parser.gss << endl;
   cout << "n nodes: " << parser.gss.nodes.size() << endl;
   
 }
