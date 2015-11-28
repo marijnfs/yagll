@@ -440,9 +440,9 @@ struct Parser {
     Descriptor head = q.top();
     q.pop();
     //if (head.node.i % 100 == 0) {
-    //cout << "i: " << head.node.i << " r:" << head.node.rule << endl;
-    //cout << "nodes: " << gss.nodes.size() << endl;
-    //cout << "q: " << q.size() << endl;
+    cout << "i: " << head.node.i << " r:" << head.node.rule << " c: " << input[head.node.i] << endl;
+    cout << "nodes: " << gss.nodes.size() << endl;
+    cout << "q: " << q.size() << endl;
       //}
     //cout << head << endl;
     (*grammar.ops[head.node.rule])(head.node, head.node_id, head.node.i, input, grammar, gss, q);
@@ -468,10 +468,17 @@ int main(int argc, char **argv) {
   cout << "Starting" << endl;
 
   GrammerDef grammar_def;
-  grammar_def["S"] = vector<string>{"thing", "S thing"};
-  grammar_def["thing"] = vector<string>{"[\\S]+", "white"};
-  grammar_def["white"] = vector<string>{"[\\s]+"};
+  grammar_def["S"] = vector<string>{"blocks [\\n]*"};
+  grammar_def["blocks"] =  vector<string>{"block", "blocks return returns block"};
+  grammar_def["block"] = vector<string>{"header", "paragraph"};
+  grammar_def["header"] = vector<string>{"words return ===[=]*"};
+  grammar_def["paragraph"] = vector<string>{"words", "paragraph return words"};
+  grammar_def["words"] = vector<string>{"word", "words space word"};
   
+  grammar_def["space"] = vector<string>{"[[:blank:]]+", "white"};
+  grammar_def["word"] = vector<string>{"[[:graph:]]+"};
+  grammar_def["return"] = vector<string>{"\\n"};
+  grammar_def["returns"] = vector<string>{"[\\n]+"};
   //grammar_def["S"] = vector<string>{"def white name", "def white number"};
   //grammar_def["name"] = vector<string>{"[a-zA-Z][a-zA-Z0-9]+"};
   //grammar_def["number"] = vector<string>{"[0-9]+"};
