@@ -51,7 +51,7 @@ typedef priority_queue<Head, vector<Head>, greater<Head> > NodeQueue;
 struct Graph {
   vector<int> cursors, rules;
   vector<vector<int>> calls, returns, prevs;
-  vector<int> parents;
+  vector<int> property_parents;
   int n_nodes;
   
   map<NodeIndex, int> index_map;
@@ -66,9 +66,9 @@ struct Graph {
 
   int property_parent(int n) {
     int p(n);
-    while (parents[p] != p)
-      p = parents[p];
-    parents[n] = p; //compression
+    while (property_parents[p] != p)
+      p = property_parents[p];
+    property_parents[n] = p; //compression
     return p;
   }
   
@@ -86,14 +86,25 @@ struct Graph {
     return new_index;
   }
   
-  int new_child_node(int parent) {
-    return 0;
+  int new_child_node(int parent, int rule) {
+    int new_index = new_node(cursors[parent], rule);
+    calls[new_index].push_back(parent);
+    property_parents[new_index] = new_index; //child owns properties
+    prevs[new_index].push_back(parent);
+    return new_index;
   }
 
-  int new_next_node(int brother) {
-    return 0;
+  int new_next_node(int brother, int n_matched) {
+    int new_index = new_node(cursors[brother] + n_matched, rules[brother] + 1);
+    property_parents[new_index] = brother;
+    prevs[new_index].push_back(brother);
+    return new_index;
   }
 
+  int return(int from) {
+    
+  }
+  
 };
 
 struct Op {
