@@ -17,81 +17,117 @@
 using namespace std;
 
 struct NodeIndex {
-  int rule, index;
+  int cursor, rule;
   bool operator<(NodeIndex const &other) const {
-    if (index != other.index)
-      return index < other.index;
+    if (cursor != other.cursor)
+      return cursor < other.cursor;
     return rule < other.rule;
   }
 
   bool operator>(NodeIndex const &other) const {
-    if (index != other.index)
-      return index > other.index;
+    if (cursor != other.cursor)
+      return cursor > other.cursor;
     return rule > other.rule;
   }
   
 };
 
 
-struct Node {
+struct Head {
   NodeIndex nodeindex;
-  vector<int> parents, previous;
+  int index;
 
-  bool operator<(Node &other) {
+  bool operator<(Head &other) {
     return nodeindex < other.nodeindex;
   }
   
-  bool operator>(Node &other) {
+  bool operator>(Head &other) {
     return nodeindex > other.nodeindex;
   }
 };
 
-typedef priority_queue<Node, vector<Node>, greater<Node> > NodeQueue;
+typedef priority_queue<Head, vector<Head>, greater<Head> > NodeQueue;
 
 struct Graph {
-  vector<Node*> nodes;
-  map<NodeIndex, int> index_map;
-
-  Node &operator()(NodeIndex index) {
-    return *nodes[index_map[index]];
-  }
+  vector<int> cursors, rules;
+  vector<vector<int>> calls, returns, prevs;
+  vector<int> parents;
+  int n_nodes;
   
-  Node &operator[](int index) {
-    return *nodes[index];
-  }
+  map<NodeIndex, int> index_map;
 
   bool exists(NodeIndex index) {
     return index_map.count(index) > 0;
   }
+
+  int operator()(NodeIndex index)  {
+    return index_map[index];
+  }
   
+  int new_node(int cursor, int rule) {
+    int new_index = n_nodes;
+    cursors.push_back(cursor);
+    rules.push_back(rule);
+
+    calls.push_back(vector<int>());
+    returns.push_back(vector<int>());
+    prevs.push_back(vector<int>());
+
+    index_map[NodeIndex{cursor, rule}] = new_index;
+    ++n_nodes;
+    return new_index;
+  }
+  
+  int new_child_node(int parent) {
+    return 0;
+  }
+
+  int new_next_node(int brother) {
+    return 0;
+  }
+
 };
 
 struct Op {
   string name;
   
 Op(string name_):name(name_){}
-  virtual int operator()(Node &node, Graph &graph);
+  virtual int operator()(string &buffer, int head, Graph &graph);
 };
 
 struct MatchOp : public Op {
-  string match_command;
+  RE2 reg;
+  string match_string;
   
-  virtual int operator()(Node &node, Graph &graph);
+ MatchOp(string name, string match): Op(name), reg(match), match_string(match){}
+  
+  virtual int operator()(string &buffer, int head, Graph &graph, NodeQueue &queue) {
+    int cursor = graph.cursors[head];
+    re2::StringPiece match;
+    if (reg.Match(buffer, cursor, buffer.size(), RE2::ANCHOR_START, &match, 1)) {
+      cout << "Matched " << match.length() << endl;
+    }
+    return 0;
+  }
+  
 };
 
 struct SpawnOp : public Op {
   vector<int> spawn_rules;
-  virtual int operator()(Node &node, Graph &graph);
+  virtual int operator()(string &buffer, int head, Graph &graph, NodeQueue &queue);
 };
 
 struct EndOp : public Op {
-  virtual int operator()(Node &node, Graph &graph);
+  virtual int operator()(string &buffer, int head, Graph &graph, NodeQueue &queue);
+};
+
+struct ReturnOp : public Op {
+  virtual int operator()(string &buffer, int head, Graph &graph, NodeQueue &queue);
 };
 
 
 struct RuleSet {
   vector<Op*> operations;
-
   map<string, int> name_map;
 
   void add_rule(){}
