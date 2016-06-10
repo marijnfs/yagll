@@ -63,6 +63,14 @@ struct Graph {
   int operator()(NodeIndex index)  {
     return index_map[index];
   }
+
+  int property_parent(int n) {
+    int p(n);
+    while (parents[p] != p)
+      p = parents[p];
+    parents[n] = p; //compression
+    return p;
+  }
   
   int new_node(int cursor, int rule) {
     int new_index = n_nodes;
@@ -113,7 +121,9 @@ struct MatchOp : public Op {
 };
 
 struct SpawnOp : public Op {
+  vector<string> spawn_rule_names;
   vector<int> spawn_rules;
+  
   virtual int operator()(string &buffer, int head, Graph &graph, NodeQueue &queue);
 };
 
