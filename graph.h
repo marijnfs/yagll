@@ -101,8 +101,13 @@ struct Graph {
     return new_index;
   }
 
-  int return(int from) {
-    
+  vector<int> &return_node(int from) {
+    int prop_parent = property_parent(from);
+    for (int call : calls[prop_parent]) {
+      returns[call].push_back(from);
+      prevs[call].push_back(from);
+    }
+    return calls[prop_parent];
   }
   
 };
