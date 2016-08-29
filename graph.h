@@ -14,7 +14,9 @@
 #include <cassert>
 #include <regex>
 #include <re2/re2.h>
+
 using namespace std;
+
 
 struct NodeIndex {
   int cursor, rule;
@@ -173,11 +175,16 @@ string read_all_file(string path) {
 struct Parser {
   RuleSet ruleset;
   Graph graph;
-
+  
+  NodeQueue queue;
+  string buf;
+  
   void reset_graph();
   
-  void parse_file(string name) {
+  void parse_file(string path) {
+    buf = read_all_file(path);
 
+    queue.push_back(Node{NodeIndex{0, ruleset.root}, 0});
     
   }
 };
