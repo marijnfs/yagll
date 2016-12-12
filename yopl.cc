@@ -133,6 +133,9 @@ int main(int argc, char **argv) {
 
   stack.insert(NodeIndex{0, 0});
   heads.push(Head{0, 0, 0});
+
+  while(heads.size()) {
+  }
 }
 
 #endif
