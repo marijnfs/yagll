@@ -33,6 +33,7 @@ struct NodeIndex {
 
 struct Head {
   int cursor, rule, depth;
+  int node;
   
   bool operator<(Head const &other) const {
     if (cursor != other.cursor)
@@ -52,11 +53,11 @@ struct Head {
 };
 
 enum RuleType {
-  OPTION,
-  PUSH,
-  MATCH,
-  RETURN,
-  END
+  OPTION = 0,
+  PUSH = 1,
+  MATCH = 2,
+  RETURN = 3,
+  END = 4
 };
 
 struct RuleSet {
@@ -109,6 +110,12 @@ int main(int argc, char **argv) {
   vector<int> properties;
   
   priority_queue<Head> heads;
+
+  string buffer("aabacaaa");
+  RE2 rule("");
+
+  cout << match(rule, buffer) << endl;
+  return 1;
   /*
   int cursor = graph.cursors[head];
   re2::StringPiece match;
@@ -132,9 +139,48 @@ int main(int argc, char **argv) {
   ruleset.add_ret();
 
   stack.insert(NodeIndex{0, 0});
-  heads.push(Head{0, 0, 0});
+  heads.push(Head{0, 0, 0, 0});
 
   while(heads.size()) {
+    Head head = heads.top();
+    heads.pop();
+    switch (ruleset.types[head.rule]) {
+    case END:
+      if (head.cursor == buffer.size()) {
+	cout << "SUCCESS" << endl;
+	return 0;
+      }
+      break;
+    case RETURN:
+      {
+	int properties_node = properties[head.node];
+	vector<int> &par = parents[properties_node];
+	for (int p : par) {
+	  p;
+	}
+      }
+      break;
+    case MATCH:
+      {
+	int n = head.node;
+	int cur = head.cursor;
+	int m = match(*ruleset.matcher[n], buffer, cur);
+      }
+      break;
+    case OPTION:
+      {
+	int n = head.node;
+	int cur = head.cursor;
+	vector<int> &args = ruleset.arguments[n];
+	for (int r : args) {
+	  NodeIndex ni{cur, r};
+	  if (stack.count(ni)) {
+	    int id = distance(stack.begin(), stack.find(ni));
+	  }
+	}
+      }
+      break;
+    }
   }
 }
 
