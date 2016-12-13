@@ -33,6 +33,11 @@ struct NodeIndex {
   }
 };
 
+ostream &operator<<(ostream &out, NodeIndex &ni) {
+  return out << "c" << ni.cursor << " r" << ni.rule << " i" << ni.nodeid;
+}
+
+
 struct Head {
   int cursor, rule, depth;
   int node;
@@ -54,6 +59,11 @@ struct Head {
   }
 };
 
+ostream &operator<<(ostream &out, Head &head) {
+  return out << "c" << head.cursor << " r" << head.rule << " i" << head.node;
+}
+
+
 enum RuleType {
   OPTION = 0,
   PUSH = 1,
@@ -61,6 +71,21 @@ enum RuleType {
   RETURN = 3,
   END = 4
 };
+
+ostream &operator<<(ostream &out, RuleType &t) {
+  switch (t) {
+  case OPTION:
+    return out << "OPTION"; break;
+  case PUSH:
+    return out << "PUSH"; break;
+  case MATCH:
+    return out << "MATCH"; break;
+  case RETURN:
+    return out << "RETURN"; break;
+  case END:
+    return out << "END"; break;
+  }
+}
 
 struct RuleSet {
   std::vector<std::string> names;
@@ -107,6 +132,7 @@ int match(RE2 &matcher, string &str, int pos = 0) {
 }
 
 int main(int argc, char **argv) {
+  cout << "yopl" << endl;
   set<NodeIndex> stack;
   vector<NodeIndex> nodes;
   vector<set<int>> parents;
@@ -141,8 +167,15 @@ int main(int argc, char **argv) {
   heads.push(Head{0, 0, 0, 0});
   cout << heads.size() << endl;
   while(heads.size()) {
+    for (auto p : parents)
+      cout << p.size() << ' ';
+    cout << endl;
+    for (auto p : properties)
+      cout << p << ' ';
+    cout << endl;
     Head head = heads.top();
-    cout << head.cursor << " " << head.rule << " " << head.nodeid << endl;
+    cout << head << endl;
+    cout << ruleset.types[head.rule] << endl;
     heads.pop();
     switch (ruleset.types[head.rule]) {
     case END:
@@ -156,14 +189,19 @@ int main(int argc, char **argv) {
 	int properties_node = properties[head.node];
 	int cur = head.cursor;
 	set<int> &par = parents[properties_node];
+	cout << properties_node << " npar: " << par.size() << endl;
+	cout << "what" << endl;
+	int bla(0);
 	for (int p : par) {
+	  cout << "-" << par.size() << " " << parents.size();
 	  ends[properties[p]].insert(cur);
 	  //get rule of p
-	  
+	  if (bla++ > 30) exit(1);
 	  auto new_node = NodeIndex{cur, nodes[p].rule+1, nodes.size()};
 	  if (stack.count(new_node))
 	    ;//skip
 	  else {
+	    cout << "adding " << new_node << endl;
 	    stack.insert(new_node);
 	    nodes.push_back(new_node);
 	    properties.push_back(properties[p]);
@@ -180,12 +218,13 @@ int main(int argc, char **argv) {
 	int n = head.node;
 	int cur = head.cursor;
 	int r = head.rule;
-	int m = match(*ruleset.matcher[n], buffer, cur);
+	int m = match(*ruleset.matcher[r], buffer, cur);
 	if (m < 0) break; //no match
 
 	//allright, add the node
 	auto new_node = NodeIndex{cur + m, r+1, nodes.size()};
-	
+
+	cout << "adding " << new_node << endl;
 	stack.insert(new_node);
 	nodes.push_back(new_node);
 	properties.push_back(properties[n]);
@@ -200,7 +239,8 @@ int main(int argc, char **argv) {
 	int n = head.node;
 	int cur = head.cursor;
 	int r = head.rule;
-	vector<int> &args = ruleset.arguments[n];
+	vector<int> &args = ruleset.arguments[r];
+	cout << args.size() << endl;
 	for (int new_r : args) {
 	  NodeIndex ni{cur, new_r, nodes.size()};
 	  if (stack.count(ni)) {
@@ -211,6 +251,7 @@ int main(int argc, char **argv) {
 	    for (int e : ends[id]) {
 	      auto new_node = NodeIndex{e, r + 1, nodes.size()};
 	      
+	      cout << "adding " << new_node << endl;
 	      stack.insert(new_node);
 	      nodes.push_back(new_node);
 	      properties.push_back(properties[n]);
@@ -221,11 +262,12 @@ int main(int argc, char **argv) {
 	    }
 	  } else {
 	    //create node
-	    auto new_node = NodeIndex{cur, new_r, nodes.size()};
-	    
+	    auto new_node = ni;
+
+	    cout << "adding " << new_node << endl;
 	    stack.insert(new_node);
 	    nodes.push_back(new_node);
-	    properties.push_back(nodes.size());
+	    properties.push_back(new_node.nodeid);
 	    parents.push_back(set<int>{n});
 	    ends.push_back(set<int>());
 
