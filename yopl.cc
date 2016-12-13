@@ -18,6 +18,8 @@ using namespace std;
 
 struct NodeIndex {
   int cursor, rule;
+  int nodeid;
+  
   bool operator<(NodeIndex const &other) const {
     if (cursor != other.cursor)
       return cursor < other.cursor;
@@ -106,7 +108,8 @@ int match(RE2 &matcher, string &str, int pos = 0) {
 
 int main(int argc, char **argv) {
   set<NodeIndex> stack;
-  vector<vector<int>> parents;
+  vector<set<int>> parents;
+  vector<set<int>> ends;
   vector<int> properties;
   
   priority_queue<Head> heads;
@@ -138,7 +141,12 @@ int main(int argc, char **argv) {
   ruleset.add_match(new RE2(""));
   ruleset.add_ret();
 
-  stack.insert(NodeIndex{0, 0});
+  //add a node
+  stack.insert(NodeIndex{0, 0, 0});
+  properties.push_back(0);
+  parents.push_back(set<int>());
+  ends.push_back(set<int>());
+  
   heads.push(Head{0, 0, 0, 0});
 
   while(heads.size()) {
@@ -154,8 +162,12 @@ int main(int argc, char **argv) {
     case RETURN:
       {
 	int properties_node = properties[head.node];
-	vector<int> &par = parents[properties_node];
+	int cur = head.cursor;
+	set<int> &par = parents[properties_node];
 	for (int p : par) {
+	  ends[p].insert(cur);
+	  //get rule of p
+	  heads.push(Head{cur, nodes[p].rule+1, head.depth - 1, p});
 	  p;
 	}
       }
@@ -176,7 +188,9 @@ int main(int argc, char **argv) {
 	  NodeIndex ni{cur, r};
 	  if (stack.count(ni)) {
 	    int id = distance(stack.begin(), stack.find(ni));
+	    
 	  }
+	  
 	}
       }
       break;
