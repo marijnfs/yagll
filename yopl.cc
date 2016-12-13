@@ -118,17 +118,6 @@ int main(int argc, char **argv) {
   string buffer("aaaaa");
   RE2 rule("");
 
-  //return 1;
-  /*
-  int cursor = graph.cursors[head];
-  re2::StringPiece match;
-  if (reg.Match(buffer, cursor, buffer.size(), RE2::ANCHOR_START, &match, 1)) {
-    cout << "Matched " << match.length() << endl;
-    }*/
-  
-  //[Op3,END,-,S,a,-
-  //[1  ,2  ,3,4,5
-
   
   RuleSet ruleset;
   ruleset.add_option(vector<int>{2});
