@@ -210,32 +210,21 @@ struct RuleSet {
 	  add_ret();
 	}
       }
-      // back reference option calls
-      for (auto kv : search_option) {
-	int option_pos = kv.first;
-	string call_name = kv.second;
-	arguments[option_pos].push_back(rule_pos[call_name]);
-      }
-
-      //set names
-      for (auto kv : rule_pos)
-	names[kv.second] = kv.first;
-
-      
-      //print the rules
-      for (auto o : r.second) {
-	for (auto i : o)
-	  cout << "'" << i << "' ";
-	cout << "| ";
-      }
-      cout << endl;
     }
-
-    //setup the rules
     
+    // back reference option calls
+    for (auto kv : search_option) {
+      int option_pos = kv.first;
+      string call_name = kv.second;
+      arguments[option_pos].push_back(rule_pos[call_name]);
+    }
+    
+    //set names
+    for (auto kv : rule_pos)
+      names[kv.second] = kv.first;
     
   }
-  
+     
   void add_ret() {
     names.push_back("");
     types.push_back(RETURN);
@@ -297,12 +286,10 @@ int main(int argc, char **argv) {
   vector<int> properties;
   
   priority_queue<Head> heads;
-
-  if (argc != 2)
-    return -1;
-  string buffer(argv[1]);
-  RE2 rule("");
-
+  
+  std::ifstream infile("file.txt");
+  std::string buffer((std::istreambuf_iterator<char>(infile)),
+		  std::istreambuf_iterator<char>());
   
   RuleSet ruleset("test.txt");
   /*RuleSet ruleset;
@@ -326,7 +313,7 @@ int main(int argc, char **argv) {
 
   //add first head
   heads.push(Head{0, 0, 0, 0});
-  cout << heads.size() << endl;
+  
   while(heads.size()) {
     for (auto p : parents)
       cout << p.size() << ' ';
@@ -335,7 +322,7 @@ int main(int argc, char **argv) {
       cout << p << ' ';
     cout << endl;
     Head head = heads.top();
-    cout << head << endl;
+    cout << "head: " << head << endl;
     cout << ruleset.types[head.rule] << endl;
     heads.pop();
     switch (ruleset.types[head.rule]) {
@@ -350,14 +337,9 @@ int main(int argc, char **argv) {
 	int properties_node = properties[head.node];
 	int cur = head.cursor;
 	set<int> par = parents[properties_node];
-	cout << properties_node << " npar: " << par.size() << endl;
-	cout << "what" << endl;
-	int bla(0);
+
 	for (int p : par) {
-	  cout << "-" << par.size() << " " << parents.size();
 	  ends[properties[p]].insert(cur);
-	  //get rule of p
-	  if (bla++ > 30) exit(1);
 	  auto new_node = NodeIndex{cur, nodes[p].rule+1, nodes.size()};
 	  if (stack.count(new_node))
 	    ;//skip
@@ -380,6 +362,8 @@ int main(int argc, char **argv) {
 	int cur = head.cursor;
 	int r = head.rule;
 	int m = match(*ruleset.matcher[r], buffer, cur);
+	cout << "Match rule: '" << ruleset.matcher[r]->pattern() << "'" << endl;
+	
 	if (m < 0) break; //no match
 
 	//allright, add the node
