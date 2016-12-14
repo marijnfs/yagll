@@ -13,7 +13,6 @@
 #include <iostream>
 
 
-
 using namespace std;
 
 struct NodeIndex {
@@ -141,7 +140,7 @@ int main(int argc, char **argv) {
   
   priority_queue<Head> heads;
 
-  string buffer("aaaaa");
+  string buffer("ababab");
   RE2 rule("");
 
   
@@ -152,6 +151,7 @@ int main(int argc, char **argv) {
   ruleset.add_ret();
   ruleset.add_option(vector<int>{2});
   ruleset.add_match(new RE2("a"));
+  ruleset.add_match(new RE2("b"));
   ruleset.add_ret();
   ruleset.add_match(new RE2(""));
   ruleset.add_ret();
@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
       {
 	int properties_node = properties[head.node];
 	int cur = head.cursor;
-	set<int> &par = parents[properties_node];
+	set<int> par = parents[properties_node];
 	cout << properties_node << " npar: " << par.size() << endl;
 	cout << "what" << endl;
 	int bla(0);
@@ -248,7 +248,8 @@ int main(int argc, char **argv) {
 	    //int n_ends = ends[id].size();
 	    //if (!parents[id].count(n)) //should not be needed?
 	    parents[id].insert(n);
-	    for (int e : ends[id]) {
+	    set<int> ends_copy = ends[id];
+	    for (int e : ends_copy) {
 	      auto new_node = NodeIndex{e, r + 1, nodes.size()};
 	      
 	      cout << "adding " << new_node << endl;
