@@ -298,7 +298,9 @@ int main(int argc, char **argv) {
   
   priority_queue<Head> heads;
 
-  string buffer("ababababab");
+  if (argc != 2)
+    return -1;
+  string buffer(argv[1]);
   RE2 rule("");
 
   
