@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <iterator>
 #include <sstream>
+#include <fstream>
 #include <iostream>
 
 
@@ -65,18 +66,15 @@ ostream &operator<<(ostream &out, Head &head) {
 
 enum RuleType {
   OPTION = 0,
-  PUSH = 1,
-  MATCH = 2,
-  RETURN = 3,
-  END = 4
+  MATCH = 1,
+  RETURN = 2,
+  END = 3
 };
 
 ostream &operator<<(ostream &out, RuleType &t) {
   switch (t) {
   case OPTION:
     return out << "OPTION"; break;
-  case PUSH:
-    return out << "PUSH"; break;
   case MATCH:
     return out << "MATCH"; break;
   case RETURN:
@@ -92,7 +90,93 @@ struct RuleSet {
   std::vector<std::vector<int>> arguments;
   std::vector<RE2*> matcher;
 
-  //RuleSet(RuleSetDef rulesetdef);
+  RuleSet(){}
+  
+  RuleSet(string filename) {
+    ifstream infile(filename.c_str());
+
+    enum Mode {
+      BLANK = 0,
+      READ = 1,
+      ESCAPE = 2
+    };
+
+    string line;
+    
+    map<string, vector<vector<string>>> rules;
+    
+    while (getline(infile, line)) {
+      cout << line << endl;
+      istringstream iss(line);
+
+      string name;
+      iss >> name;
+      cout << "name: " << name << endl;
+
+      
+      Mode mode(BLANK);
+      string item;
+      vector<string> curitems;
+      vector<vector<string>> options;
+      
+      while (true) {
+	char c = iss.get();
+	if (c == EOF) {
+	  if (item.size())
+	    curitems.push_back(item);
+	  options.push_back(curitems);
+	  rules[name] = options;
+	  break;
+	}
+	cout << c;
+	if (mode == BLANK) {
+	  if (c == '|') { //a new set
+	    //add current items to vector
+	    options.push_back(curitems);
+	    curitems.clear();
+	    item.clear();
+	  }
+	  else if (c == ' ')
+	    ;
+	  else if (c == '\'')
+	    mode = ESCAPE;
+	  else {
+	    item += c;
+	    mode = READ;
+	  }
+	}
+	else if (mode == READ) {
+	  if (c == ' ') {
+	    //add item to set
+	    curitems.push_back(item);
+	    item.clear();
+	    mode = BLANK;
+	  } else
+	    item += c;
+	}
+	else if (mode == ESCAPE) {
+	  if (c == '\'') {
+	    //add item to set
+	    curitems.push_back(item);
+	    item.clear();
+	    mode = BLANK;
+	  } else
+	    item += c;
+	}
+      }      
+      cout << endl;      
+    }
+    
+    for (auto r : rules) {
+      cout << "rule [" << r.first << "]" << endl;
+      for (auto o : r.second) {
+	for (auto i : o)
+	  cout << "'" << i << "' ";
+	cout << "| ";
+      }
+      cout << endl;
+    }
+  }
 
   void add_ret() {
     types.push_back(RETURN);
@@ -132,6 +216,7 @@ int match(RE2 &matcher, string &str, int pos = 0) {
 
 int main(int argc, char **argv) {
   cout << "yopl" << endl;
+  RuleSet test("test.txt");return 1;
   set<NodeIndex> stack;
   vector<NodeIndex> nodes;
   vector<set<int>> parents;
@@ -147,7 +232,7 @@ int main(int argc, char **argv) {
   RuleSet ruleset;
   ruleset.add_option(vector<int>{2});
   ruleset.add_end();
-  ruleset.add_option(vector<int>{4,7});
+  ruleset.add_option(vector<int>{4,8});
   ruleset.add_ret();
   ruleset.add_option(vector<int>{2});
   ruleset.add_match(new RE2("a"));
@@ -274,7 +359,6 @@ int main(int argc, char **argv) {
 
 	    heads.push(Head{new_node.cursor, new_node.rule, head.depth + 1, new_node.nodeid});
 	  }
-	  
 	}
       }
       break;
