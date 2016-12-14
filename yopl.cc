@@ -111,6 +111,8 @@ struct RuleSet {
 
       string name;
       iss >> name;
+      if (name.size() == 0)
+	continue;
       cout << "name: " << name << endl;
 
       
@@ -166,9 +168,61 @@ struct RuleSet {
       }      
       cout << endl;      
     }
+
+
+    //Add the rules
+    add_option("ROOT", vector<int>{2});
+    add_end();
+    
+    map<int, string> search_option; //backsearching the option calls afterwards
+    map<string, int> rule_pos;
     
     for (auto r : rules) {
-      cout << "rule [" << r.first << "]" << endl;
+      string name = r.first;
+      vector<vector<string>> &options = r.second;
+      rule_pos[name] = size();
+
+      if (options.size() == 1) { //we dont need an option
+	for (auto exp : options[0]) {
+	  if (rules.count(exp)) { //refers to a rule
+	    search_option[size()] = exp;
+	    add_option();
+	  } else { //a matcher
+	    add_match(exp);
+	  }
+	}
+	add_ret();
+      } else { //we need an option
+	int root_option_id = size();
+	add_option();
+	add_ret();
+
+	for (auto o : options) {
+	  arguments[root_option_id].push_back(size());
+	  for (auto exp : o) {
+	    if (rules.count(exp)) { //refers to a rule
+	      search_option[size()] = exp;
+	      add_option();
+	    } else { //a matcher
+	      add_match(exp);
+	    }
+	  }
+	  add_ret();
+	}
+      }
+      // back reference option calls
+      for (auto kv : search_option) {
+	int option_pos = kv.first;
+	string call_name = kv.second;
+	arguments[option_pos].push_back(rule_pos[call_name]);
+      }
+
+      //set names
+      for (auto kv : rule_pos)
+	names[kv.second] = kv.first;
+
+      
+      //print the rules
       for (auto o : r.second) {
 	for (auto i : o)
 	  cout << "'" << i << "' ";
@@ -176,30 +230,50 @@ struct RuleSet {
       }
       cout << endl;
     }
-  }
 
+    //setup the rules
+    
+    
+  }
+  
   void add_ret() {
+    names.push_back("");
     types.push_back(RETURN);
     arguments.push_back(vector<int>(0,0));
     matcher.push_back(0);
   }
 
   void add_end() {
+    names.push_back("");
     types.push_back(END);
     arguments.push_back(vector<int>(0,0));
     matcher.push_back(0);
   }
 
-  void add_option(vector<int> spawn) {
+  void add_option(string name, vector<int> spawn = vector<int>()) {
+    names.push_back(name);
     types.push_back(OPTION);
     arguments.push_back(spawn); //call S
     matcher.push_back(0);
   }
 
-  void add_match(RE2 *rule) {
+  void add_option(vector<int> spawn = vector<int>()) {
+    add_option("", spawn);
+  }
+  
+  void add_match(string name, string matchstr) {
+    names.push_back(name);
     types.push_back(MATCH);
     arguments.push_back(vector<int>(0,0));
-    matcher.push_back(rule);
+    matcher.push_back(new RE2(matchstr));
+  }
+
+  void add_match(string matchstr) {
+    add_match("", matchstr);
+  }
+  
+  int size() {
+    return types.size();
   }
   
 };
@@ -216,7 +290,6 @@ int match(RE2 &matcher, string &str, int pos = 0) {
 
 int main(int argc, char **argv) {
   cout << "yopl" << endl;
-  RuleSet test("test.txt");return 1;
   set<NodeIndex> stack;
   vector<NodeIndex> nodes;
   vector<set<int>> parents;
@@ -225,21 +298,22 @@ int main(int argc, char **argv) {
   
   priority_queue<Head> heads;
 
-  string buffer("ababab");
+  string buffer("ababababab");
   RE2 rule("");
 
   
-  RuleSet ruleset;
+  RuleSet ruleset("test.txt");
+  /*RuleSet ruleset;
   ruleset.add_option(vector<int>{2});
   ruleset.add_end();
   ruleset.add_option(vector<int>{4,8});
   ruleset.add_ret();
   ruleset.add_option(vector<int>{2});
-  ruleset.add_match(new RE2("a"));
-  ruleset.add_match(new RE2("b"));
+  ruleset.add_match("a");
+  ruleset.add_match("b");
   ruleset.add_ret();
-  ruleset.add_match(new RE2(""));
-  ruleset.add_ret();
+  ruleset.add_match("");
+  ruleset.add_ret();*/
 
   //add a node
   stack.insert(NodeIndex{0, 0, 0});
