@@ -358,7 +358,7 @@ int main(int argc, char **argv) {
 	for (int p : par) {
 	  auto new_node = NodeIndex{cur, nodes[p].rule+1, nodes.size()};
 	  //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
-	  
+	  cout << p << endl;
 	  if (stack.count(new_node)) { // && properties[stack.find(new_node)->nodeid] == properties[p])
 	    int existing_id = stack.find(new_node)->nodeid;
 	    int existing_prop = properties[existing_id];
