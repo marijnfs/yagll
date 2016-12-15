@@ -287,40 +287,29 @@ int main(int argc, char **argv) {
   
   priority_queue<Head> heads;
   
-  std::ifstream infile("file.txt");
+  std::ifstream infile("input.txt");
   std::string buffer((std::istreambuf_iterator<char>(infile)),
 		  std::istreambuf_iterator<char>());
   
-  RuleSet ruleset("test.txt");
-  /*RuleSet ruleset;
-  ruleset.add_option(vector<int>{2});
-  ruleset.add_end();
-  ruleset.add_option(vector<int>{4,8});
-  ruleset.add_ret();
-  ruleset.add_option(vector<int>{2});
-  ruleset.add_match("a");
-  ruleset.add_match("b");
-  ruleset.add_ret();
-  ruleset.add_match("");
-  ruleset.add_ret();*/
+  RuleSet ruleset("gram.txt");
 
-  //add a node
+  //add the ROOT node
   stack.insert(NodeIndex{0, 0, 0});
   nodes.push_back(NodeIndex{0, 0, 0});
   properties.push_back(0);
   parents.push_back(set<int>());
   ends.push_back(set<int>());
 
-  //add first head
+  //add ROOT head
   heads.push(Head{0, 0, 0, 0});
   
   while(heads.size()) {
-    for (auto p : parents)
-      cout << p.size() << ' ';
-    cout << endl;
-    for (auto p : properties)
-      cout << p << ' ';
-    cout << endl;
+    //for (auto p : parents)
+    //  cout << p.size() << ' ';
+    //cout << endl;
+    //for (auto p : properties)
+    //  cout << p << ' ';
+    //cout << endl;
     Head head = heads.top();
     cout << "head: " << head << endl;
     cout << ruleset.types[head.rule] << endl;
@@ -337,13 +326,20 @@ int main(int argc, char **argv) {
 	int properties_node = properties[head.node];
 	int cur = head.cursor;
 	set<int> par = parents[properties_node];
-
+	if (head.rule == 3) {
+	  cout << "parents: ";
+	  for (int p : par)
+	    cout << p << ",";
+	  cout << endl;
+	}
 	for (int p : par) {
 	  ends[properties[p]].insert(cur);
 	  auto new_node = NodeIndex{cur, nodes[p].rule+1, nodes.size()};
-	  if (stack.count(new_node))
-	    ;//skip
-	  else {
+	  //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
+	  
+	  //if (stack.count(new_node))
+	  //  ;//skip
+	  //else {
 	    cout << "adding " << new_node << endl;
 	    stack.insert(new_node);
 	    nodes.push_back(new_node);
@@ -352,7 +348,7 @@ int main(int argc, char **argv) {
 	    ends.push_back(set<int>());
 	    
 	    heads.push(Head{new_node.cursor, new_node.rule, head.depth - 1, new_node.nodeid});
-	  }
+	    //}
 	}
       }
       break;
@@ -362,7 +358,7 @@ int main(int argc, char **argv) {
 	int cur = head.cursor;
 	int r = head.rule;
 	int m = match(*ruleset.matcher[r], buffer, cur);
-	cout << "Match rule: '" << ruleset.matcher[r]->pattern() << "'" << endl;
+	cout << "Match rule: '" << ruleset.matcher[r]->pattern() << "' [" << cur<< "] matched " << m << endl;
 	
 	if (m < 0) break; //no match
 
@@ -385,15 +381,15 @@ int main(int argc, char **argv) {
 	int cur = head.cursor;
 	int r = head.rule;
 	vector<int> &args = ruleset.arguments[r];
-	cout << args.size() << endl;
+
 	for (int new_r : args) {
 	  NodeIndex ni{cur, new_r, nodes.size()};
 	  if (stack.count(ni)) {
 	    int id = stack.find(ni)->nodeid;
 	    //int n_ends = ends[id].size();
 	    //if (!parents[id].count(n)) //should not be needed?
-	    parents[id].insert(n);
-	    set<int> ends_copy = ends[id];
+	    parents[properties[id]].insert(n);
+	    set<int> ends_copy = ends[properties[id]];
 	    for (int e : ends_copy) {
 	      auto new_node = NodeIndex{e, r + 1, nodes.size()};
 	      
