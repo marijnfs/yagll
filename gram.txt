@@ -1,0 +1,9 @@
+S line '\n' S | ''
+line exp | stat
+stat name '=' exp
+exp binop | number | name
+binop plus | minus
+plus exp '\+' exp
+minus exp '-' exp
+name [[:alpha:]]+
+number [[:digit:]]+
