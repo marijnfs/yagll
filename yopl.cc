@@ -334,7 +334,7 @@ int main(int argc, char **argv) {
 	}
 	for (int p : par) {
 	  ends[properties[p]].insert(cur);
-	  auto new_node = NodeIndex{cur, nodes[p].rule+1, nodes.size()};
+	  auto new_node = NodeIndex{cur, nodes[p].rule+1, (int)nodes.size()};
 	  //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
 	  
 	  //if (stack.count(new_node))
@@ -363,7 +363,7 @@ int main(int argc, char **argv) {
 	if (m < 0) break; //no match
 
 	//allright, add the node
-	auto new_node = NodeIndex{cur + m, r+1, nodes.size()};
+	auto new_node = NodeIndex{cur + m, r+1, (int)nodes.size()};
 
 	cout << "adding " << new_node << endl;
 	stack.insert(new_node);
@@ -383,7 +383,7 @@ int main(int argc, char **argv) {
 	vector<int> &args = ruleset.arguments[r];
 
 	for (int new_r : args) {
-	  NodeIndex ni{cur, new_r, nodes.size()};
+	  NodeIndex ni{cur, new_r, (int)nodes.size()};
 	  if (stack.count(ni)) {
 	    int id = stack.find(ni)->nodeid;
 	    //int n_ends = ends[id].size();
@@ -391,7 +391,7 @@ int main(int argc, char **argv) {
 	    parents[properties[id]].insert(n);
 	    set<int> ends_copy = ends[properties[id]];
 	    for (int e : ends_copy) {
-	      auto new_node = NodeIndex{e, r + 1, nodes.size()};
+	      auto new_node = NodeIndex{e, r + 1, (int)nodes.size()};
 	      
 	      cout << "adding " << new_node << endl;
 	      stack.insert(new_node);
