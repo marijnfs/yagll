@@ -41,22 +41,22 @@ ostream &operator<<(ostream &out, NodeIndex &ni) {
 
 
 struct Head {
-  int cursor, rule, depth;
+  int cursor, rule;//, depth;
   int node;
   
   bool operator<(Head const &other) const {
     if (cursor != other.cursor)
       return cursor < other.cursor;
-    if (depth != other.depth)
-      return depth < other.depth;
+    //if (depth != other.depth)
+    //return depth < other.depth;
     return rule > other.rule;
   }
 
   bool operator>(Head const &other) const {
     if (cursor != other.cursor)
       return cursor > other.cursor;
-    if (depth != other.depth)
-      return depth > other.depth;
+    //if (depth != other.depth)
+    //return depth > other.depth;
     return rule < other.rule;
   }
 };
@@ -176,20 +176,26 @@ struct RuleSet {
     //Add the rules
     add_option("ROOT", vector<int>{2});
     add_end();
-    
-    map<int, string> search_option; //backsearching the option calls afterwards
+
+    typedef pair<int, string> so_pair;
+    multimap<int, string> search_option; //backsearching the option calls afterwards
     map<string, int> rule_pos;
     
     for (auto r : rules) {
       string name = r.first;
       vector<vector<string>> &options = r.second;
-      rule_pos[name] = size();
 
       int start = size();
+      rule_pos[name] = start;
+
+      cout << name << " " << start << endl;
+
       if (options.size() == 1) { //we dont need an option
-	for (auto exp : options[0]) {
+	auto &expressions = options[0];
+	for (auto &exp : expressions) {
 	  if (rules.count(exp)) { //refers to a rule
-	    search_option[size()] = exp;
+	    cout << size() << " " << exp << endl;
+	    search_option.insert(so_pair(size(), exp));
 	    add_option();
 	  } else { //a matcher
 	    add_match(exp);
@@ -197,24 +203,30 @@ struct RuleSet {
 	}
 	return_id[start] = size(); //set start rule to end
 	add_ret();
+	
       } else { //we need an option
 	add_option();
 	return_id[start] = size();
 	add_ret();
 
 	for (auto o : options) {
-	  arguments[start].push_back(size());
 	  int op_start = size();
-	  for (auto exp : o) {
-	    if (rules.count(exp)) { //refers to a rule
-	      search_option[size()] = exp;
-	      add_option();
-	    } else { //a matcher
-	      add_match(exp);
+	  if (o.size() == 1 && rules.count(o[0])) {
+	    search_option.insert(so_pair(start, o[0]));
+	  } else {
+	    arguments[start].push_back(size());
+	    for (auto exp : o) {
+	      if (rules.count(exp)) { //refers to a rule
+		search_option.insert(so_pair(size(), exp));
+		add_option();
+	      } else { //a matcher
+		add_match(exp);
+	      }
 	    }
+	    
+	    return_id[op_start] = size();
+	    add_ret();
 	  }
-	  return_id[op_start] = size();
-	  add_ret();
 	}
       }
     }
@@ -224,6 +236,7 @@ struct RuleSet {
       int option_pos = kv.first;
       string call_name = kv.second;
       arguments[option_pos].push_back(rule_pos[call_name]);
+      cout << "adding " << option_pos << " " << call_name << " " << rule_pos[call_name] << endl;
     }
     
     //set names
@@ -327,19 +340,22 @@ int main(int argc, char **argv) {
   
   
   //add ROOT head
-  heads.push(Head{0, 0, 0, 0});
+  heads.push(Head{0, 0, 0});
 
   //Start Parsing
   while(heads.size()) {
-    //for (auto p : parents)
-    //  cout << p.size() << ' ';
-    //cout << endl;
-    //for (auto p : properties)
-    //  cout << p << ' ';
-    //cout << endl;
     Head head = heads.top();
-    /*if (DEBUG)*/ cout << "head: " << head << " " << ruleset.types[head.rule] << endl;
+    if (DEBUG) cout << "head: " << head << " " << ruleset.types[head.rule] << endl;
 
+    /*if (nodes.size() > 1000) {
+      cout << "nodes: ";
+      for (int n(0); n < nodes.size(); ++n) {
+	cout << nodes[n].cursor << "r" << nodes[n].rule << " ";
+      }
+      cout << endl;
+      return -1;
+      }*/
+    
     heads.pop();
     switch (ruleset.types[head.rule]) {
     case END:
@@ -352,26 +368,28 @@ int main(int argc, char **argv) {
       {
 	int properties_node = properties[head.node];
 	int cur = head.cursor;
-	set<int> par = parents[properties_node];
 	ends[properties_node].insert(cur);
+	set<int> par = parents[properties_node];
 	
 	for (int p : par) {
 	  auto new_node = NodeIndex{cur, nodes[p].rule+1, (int)nodes.size()};
 
 	  //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
-	  cout << p << endl;
-	  if (stack.count(new_node)) { // && properties[stack.find(new_node)->nodeid] == properties[p])
+	  //cout << p << endl;
+	  if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) { // && properties[stack.find(new_node)->nodeid] == properties[p])
+	    //cout << new_node << " already exists" << " " << ruleset.types[new_node.rule] << endl;
 	    int existing_id = stack.find(new_node)->nodeid;
 	    int existing_prop = properties[existing_id];
 	    int parent_prop = properties[p];
-	    if (existing_prop != parent_prop) {
-	      parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
-	      properties[p] = properties[existing_prop];
+	    //if (existing_prop != parent_prop) {
+	    parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
+	    //  properties[p] = properties[existing_prop];
 
-	      //test: //should instead check ends and add them directly?
-	      auto new_node = nodes[existing_id];
-	      heads.push(Head{new_node.cursor, new_node.rule, head.depth, new_node.nodeid});
-	    }	    
+	    //  //test: //should instead check ends and add them directly?
+	    //  auto new_node = nodes[existing_id];
+	    //  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+	    
+	    //}
 
 	  } else {
 	    if (DEBUG) cout << "adding " << new_node << endl;
@@ -382,7 +400,7 @@ int main(int argc, char **argv) {
 	    ends.push_back(set<int>());
 	    crumbs.push_back(set<int>{head.node});
 	    
-	    heads.push(Head{new_node.cursor, new_node.rule, head.depth - 1, new_node.nodeid});
+	    heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 	    //}
 	  }
 	}
@@ -409,7 +427,7 @@ int main(int argc, char **argv) {
 	ends.push_back(set<int>());
 	crumbs.push_back(set<int>{n});
 
-	heads.push(Head{new_node.cursor, new_node.rule, head.depth, new_node.nodeid});
+	heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
       }
       break;
     case OPTION:
@@ -435,12 +453,12 @@ int main(int argc, char **argv) {
 		int existing_id = stack.find(new_node)->nodeid;
 		int existing_prop = properties[existing_id];
 		int our_prop = properties[n];
-		if (existing_prop != our_prop) {
-		  parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
-		  properties[n] = properties[existing_prop];
-		  auto new_node = nodes[existing_id];
-		  heads.push(Head{new_node.cursor, new_node.rule, head.depth, new_node.nodeid});
-		}
+		//if (existing_prop != our_prop) {
+		parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
+		  //properties[n] = properties[existing_prop];
+		  //auto new_node = nodes[existing_id];
+		  //heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+		  //}
 		
 		continue; // add crumbs?
 	      } else { //add node
@@ -452,7 +470,7 @@ int main(int argc, char **argv) {
 		ends.push_back(set<int>());
 		crumbs.push_back(set<int>()); //TODO: how to get the return from the end?
 		
-		heads.push(Head{new_node.cursor, new_node.rule, head.depth, new_node.nodeid});
+		heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 	      }
 	    }
 	  } else {
@@ -466,7 +484,7 @@ int main(int argc, char **argv) {
 	    parents.push_back(set<int>{n});
 	    ends.push_back(set<int>());
 	    crumbs.push_back(set<int>{n});
-	    heads.push(Head{new_node.cursor, new_node.rule, head.depth + 1, new_node.nodeid});
+	    heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 	  }
 	}
       }
