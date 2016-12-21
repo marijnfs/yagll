@@ -20,6 +20,7 @@
 #include "llvm/ExecutionEngine/ExecutionEngine.h"
 #include "llvm/ExecutionEngine/GenericValue.h"
 #include "llvm/ExecutionEngine/MCJIT.h"
+#include "llvm/Support/TargetSelect.h"
 
 #include <iostream>
 
@@ -27,36 +28,31 @@ using namespace std;
 using namespace llvm;
 
 Function *makeFunc(LLVMContext &C, Module* mod) {
-  // Module Construction
-  
-  Constant* c = mod->getOrInsertFunction("mul_add",
-					 /*ret type*/                          IntegerType::getInt32Ty(C),
-					 /*args*/                              IntegerType::getInt32Ty(C),
-					 IntegerType::getInt32Ty(C),
-					 IntegerType::getInt32Ty(C),
-					 /*varargs terminated with null*/       NULL);
+  std::vector<Type*> inputs;
+  inputs.push_back(Type::getInt32Ty(C));
+  inputs.push_back(Type::getInt32Ty(C));
+  inputs.push_back(Type::getInt32Ty(C));
 
-  Function* mul_add = cast<Function>(c);
+  //Function *mul_add = mod->getFunction("mul_add");
+
+  FunctionType *FT = FunctionType::get(Type::getInt32Ty(C),
+				       inputs, false);
+  //Function *mul_add = Function::Create(FT, Function::ExternalLinkage, "mul_add", mod);
+  Function *mul_add = cast<Function>(mod->getOrInsertFunction("muladd", FT));
   mul_add->setCallingConv(CallingConv::C);
 
-
-  Argument *args = &*mul_add->arg_begin();
-  Value* x = args++;
+  auto args = mul_add->arg_begin();
+  Argument *x = &*args++;
   x->setName("x");
-  Value* y = args++;
+  Argument *y = &*args++;
   y->setName("y");
-  Value* z = args++;
+  Argument *z = &*args;
   z->setName("z");
-
-  BasicBlock* block = BasicBlock::Create(getGlobalContext(), "entry", mul_add);
-  IRBuilder<> builder(block);
-
-  Value* tmp = builder.CreateBinOp(Instruction::Mul,
-				   x, y, "tmp");
-  Value* tmp2 = builder.CreateBinOp(Instruction::Add,
-				    tmp, z, "tmp2");
-
-  builder.CreateRet(tmp2);
+  
+  BasicBlock* block = BasicBlock::Create(C, "entry", mul_add, 0);
+  Value *tmp = BinaryOperator::CreateMul(x, y, "tmp", block);
+  Value *result = BinaryOperator::CreateAdd(tmp, z, "result", block);
+  ReturnInst::Create(C, result, block);
 
   //return mod;
   return mul_add;
@@ -64,36 +60,52 @@ Function *makeFunc(LLVMContext &C, Module* mod) {
 
 
 int main(int argc, char **argv) {
+  InitializeNativeTarget();
+  InitializeNativeTargetAsmPrinter();
+  InitializeNativeTargetAsmParser();
+  
   LLVMContext C;
+
   std::unique_ptr<Module> Owner(new Module("test", C));
   Module *mod = Owner.get();
 
   cout << "got here" << endl;
+
   Function *muladd = makeFunc(C, mod);
-  
+
+  mod->dump();
+  //muladd = mod->getFunction("muladd");
+  if (verifyFunction(*muladd)) {
+    cout << "failed verification" << endl;
+    return 1;
+  }
+
   std::string errStr;
   ExecutionEngine *EE =
     EngineBuilder(std::move(Owner))
     .setErrorStr(&errStr)
     .create();
 
-  if (!EE) {
+    if (!EE) {
     errs() << argv[0] << ": Failed to construct ExecutionEngine: " << errStr
 	   << "\n";
     return 1;
   }
-
+  cout << "got here" << endl;
   errs() << "verifying... ";
   if (verifyModule(*mod)) {
     errs() << argv[0] << ": Error constructing function!\n";
     return 1;
   }
-
+  cout << "got here" << endl;
+  EE->finalizeObject();
   std::vector<GenericValue> Args(3);
   Args[0].IntVal = APInt(32, 3);
   Args[1].IntVal = APInt(32, 5);
   Args[2].IntVal = APInt(32, 6);
 
+
+  //cout << muladd << endl;
   GenericValue GV = EE->runFunction(muladd, Args);
   outs() << "Result: " << GV.IntVal << "\n";
   
