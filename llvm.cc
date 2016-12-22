@@ -37,17 +37,19 @@ Function *makeFunc(LLVMContext &C, Module* mod) {
 
   FunctionType *FT = FunctionType::get(Type::getInt32Ty(C),
 				       inputs, false);
-  //Function *mul_add = Function::Create(FT, Function::ExternalLinkage, "mul_add", mod);
-  Function *mul_add = cast<Function>(mod->getOrInsertFunction("muladd", FT));
+  Function *mul_add = Function::Create(FT, Function::ExternalLinkage, "mul_add", mod);
+  //Function *mul_add = cast<Function>(mod->getOrInsertFunction("muladd", FT));
   mul_add->setCallingConv(CallingConv::C);
 
   auto args = mul_add->arg_begin();
+
   Argument *x = &*args++;
   x->setName("x");
   Argument *y = &*args++;
   y->setName("y");
-  Argument *z = &*args;
+  Argument *z = &*args++;
   z->setName("z");
+
   
   BasicBlock* block = BasicBlock::Create(C, "entry", mul_add, 0);
   Value *tmp = BinaryOperator::CreateMul(x, y, "tmp", block);
@@ -69,11 +71,8 @@ int main(int argc, char **argv) {
   std::unique_ptr<Module> Owner(new Module("test", C));
   Module *mod = Owner.get();
 
-  cout << "got here" << endl;
-
   Function *muladd = makeFunc(C, mod);
 
-  mod->dump();
   //muladd = mod->getFunction("muladd");
   if (verifyFunction(*muladd)) {
     cout << "failed verification" << endl;
@@ -91,23 +90,27 @@ int main(int argc, char **argv) {
 	   << "\n";
     return 1;
   }
-  cout << "got here" << endl;
+
   errs() << "verifying... ";
   if (verifyModule(*mod)) {
     errs() << argv[0] << ": Error constructing function!\n";
     return 1;
   }
-  cout << "got here" << endl;
+
   EE->finalizeObject();
+    
   std::vector<GenericValue> Args(3);
-  Args[0].IntVal = APInt(32, 3);
-  Args[1].IntVal = APInt(32, 5);
-  Args[2].IntVal = APInt(32, 6);
+  Args[0].IntVal = APInt(32, 13);
+  Args[1].IntVal = APInt(32, 15);
+  Args[2].IntVal = APInt(32, 16);
 
 
   //cout << muladd << endl;
-  GenericValue GV = EE->runFunction(muladd, Args);
-  outs() << "Result: " << GV.IntVal << "\n";
+  typedef uint32_t bla(uint32_t, uint32_t, uint32_t);
+
+  bla *f = (bla*)EE->getFunctionAddress("mul_add");
+  //GenericValue GV = EE->runFunction(muladd, Args);
+  outs() << "Result: " << f(3,5,6) << "\n";
   
   
   return 0;
