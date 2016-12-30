@@ -91,7 +91,7 @@ struct RuleSet {
   std::vector<RuleType> types;
   std::vector<std::vector<int>> arguments;
   std::vector<RE2*> matcher;
-  std::vector<int> return_id; // points to return (or end) point of each rule, needed to place crumbs
+  std::vector<int> returns; // points to return (or end) point of each rule, needed to place crumbs
   
   RuleSet(){}
   
@@ -201,12 +201,10 @@ struct RuleSet {
 	    add_match(exp);
 	  }
 	}
-	return_id[start] = size(); //set start rule to end
 	add_ret();
 	
       } else { //we need an option
 	add_option();
-	return_id[start] = size();
 	add_ret();
 
 	for (auto o : options) {
@@ -224,7 +222,6 @@ struct RuleSet {
 	      }
 	    }
 	    
-	    return_id[op_start] = size();
 	    add_ret();
 	  }
 	}
@@ -243,6 +240,14 @@ struct RuleSet {
     for (auto kv : rule_pos)
       names[kv.second] = kv.first;
 
+    //set returns
+    int last_ret(0);
+    for (int i(types.size()-1); i > 0; --i) {
+      if (types[i] == RETURN || types[i] == END)
+	last_ret = i;
+      returns[i] = last_ret;
+    }
+    
 
     //print rules
     for (int i(0); i < types.size(); ++i) {
@@ -261,7 +266,7 @@ struct RuleSet {
     types.push_back(RETURN);
     arguments.push_back(vector<int>(0,0));
     matcher.push_back(0);
-    return_id.push_back(0);
+    returns.push_back(0);
   }
 
   void add_end() {
@@ -269,7 +274,7 @@ struct RuleSet {
     types.push_back(END);
     arguments.push_back(vector<int>(0,0));
     matcher.push_back(0);
-    return_id.push_back(0);
+    returns.push_back(0);
   }
 
   void add_option(string name, vector<int> spawn = vector<int>()) {
@@ -277,7 +282,7 @@ struct RuleSet {
     types.push_back(OPTION);
     arguments.push_back(spawn); //call S
     matcher.push_back(0);
-    return_id.push_back(0);
+    returns.push_back(0);
   }
 
   void add_option(vector<int> spawn = vector<int>()) {
@@ -289,7 +294,7 @@ struct RuleSet {
     types.push_back(MATCH);
     arguments.push_back(vector<int>(0,0));
     matcher.push_back(new RE2(matchstr));
-    return_id.push_back(0);
+    returns.push_back(0);
   }
 
   void add_match(string matchstr) {
@@ -312,8 +317,7 @@ int match(RE2 &matcher, string &str, int pos = 0) {
   return -1;
 }
 
-int main(int argc, char **argv) {
-  cout << "yopl" << endl;
+int parse(string gram_file, string input_file) {
   set<NodeIndex> stack;
   vector<NodeIndex> nodes;
   vector<int> properties;
@@ -324,11 +328,11 @@ int main(int argc, char **argv) {
   
   priority_queue<Head> heads;
   
-  std::ifstream infile("input.txt");
+  std::ifstream infile(input_file);
   std::string buffer((std::istreambuf_iterator<char>(infile)),
 		  std::istreambuf_iterator<char>());
   
-  RuleSet ruleset("gram.txt");
+  RuleSet ruleset(gram_file);
 
   //add the ROOT node
   stack.insert(NodeIndex{0, 0, 0});
@@ -360,6 +364,12 @@ int main(int argc, char **argv) {
     switch (ruleset.types[head.rule]) {
     case END:
       if (head.cursor == buffer.size()) {
+	int n = head.node;
+	while (crumbs[n].size()) {
+	  cout << nodes[n] << endl;
+	  n = *crumbs[n].begin();
+	}
+      
 	cout << "SUCCESS" << endl;
 	return 0;
       }
@@ -372,8 +382,9 @@ int main(int argc, char **argv) {
 	set<int> par = parents[properties_node];
 	
 	for (int p : par) {
-	  auto new_node = NodeIndex{cur, nodes[p].rule+1, (int)nodes.size()};
+	  auto new_node = NodeIndex{cur, nodes[p].rule + 1, (int)nodes.size()};
 
+	  
 	  //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
 	  //cout << p << endl;
 	  if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) { // && properties[stack.find(new_node)->nodeid] == properties[p])
@@ -383,6 +394,7 @@ int main(int argc, char **argv) {
 	    int parent_prop = properties[p];
 	    //if (existing_prop != parent_prop) {
 	    parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
+	    crumbs[existing_id].insert(head.node);
 	    //  properties[p] = properties[existing_prop];
 
 	    //  //test: //should instead check ends and add them directly?
@@ -441,20 +453,26 @@ int main(int argc, char **argv) {
 	  NodeIndex ni{cur, new_r, (int)nodes.size()};
 	  if (stack.count(ni)) { //node exists
 	    int id = stack.find(ni)->nodeid;
+
 	    //int n_ends = ends[id].size();
 	    //if (!parents[id].count(n)) //should not be needed?
 	    parents[id].insert(n);
+	    crumbs[id].insert(n);
 
 	    //if already has ends, add nexts
 	    set<int> ends_copy = ends[id];
 	    for (int e : ends_copy) {
 	      auto new_node = NodeIndex{e, r + 1, (int)nodes.size()};
+	      NodeIndex crumb_node{e, ruleset.returns[new_r], 0}; //should exist
+	      int crumb_id = stack.find(crumb_node)->nodeid;
+	      
 	      if (stack.count(new_node)) {
 		int existing_id = stack.find(new_node)->nodeid;
 		int existing_prop = properties[existing_id];
 		int our_prop = properties[n];
 		//if (existing_prop != our_prop) {
 		parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
+		crumbs[existing_id].insert(crumb_id);
 		  //properties[n] = properties[existing_prop];
 		  //auto new_node = nodes[existing_id];
 		  //heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
@@ -468,7 +486,7 @@ int main(int argc, char **argv) {
 		properties.push_back(properties[n]);
 		parents.push_back(set<int>{});
 		ends.push_back(set<int>());
-		crumbs.push_back(set<int>()); //TODO: how to get the return from the end?
+		crumbs.push_back(set<int>{crumb_id}); //TODO: how to get the return from the end?
 		
 		heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 	      }
@@ -491,6 +509,11 @@ int main(int argc, char **argv) {
       break;
     }
   }
+}
+
+int main(int argc, char **argv) {
+  cout << "yopl" << endl;
+  return parse("gram.txt", "input.txt");
 }
 
 #endif

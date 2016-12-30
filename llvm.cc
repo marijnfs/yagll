@@ -100,9 +100,9 @@ int main(int argc, char **argv) {
   EE->finalizeObject();
     
   std::vector<GenericValue> Args(3);
-  Args[0].IntVal = APInt(32, 13);
-  Args[1].IntVal = APInt(32, 15);
-  Args[2].IntVal = APInt(32, 16);
+  Args[0].IntVal = APInt(32, 1300);
+  Args[1].IntVal = APInt(32, 1500);
+  Args[2].IntVal = APInt(32, 1600);
 
 
   //cout << muladd << endl;
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
 
   bla *f = (bla*)EE->getFunctionAddress("mul_add");
   //GenericValue GV = EE->runFunction(muladd, Args);
-  outs() << "Result: " << f(3,5,6) << "\n";
+  outs() << "Result: " << f(1233,12315,61313) << "\n";
   
   
   return 0;
