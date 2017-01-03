@@ -41,22 +41,18 @@ ostream &operator<<(ostream &out, NodeIndex &ni) {
 
 
 struct Head {
-  int cursor, rule;//, depth;
+  int cursor, rule;
   int node;
   
   bool operator<(Head const &other) const {
     if (cursor != other.cursor)
       return cursor < other.cursor;
-    //if (depth != other.depth)
-    //return depth < other.depth;
     return rule > other.rule;
   }
 
   bool operator>(Head const &other) const {
     if (cursor != other.cursor)
       return cursor > other.cursor;
-    //if (depth != other.depth)
-    //return depth > other.depth;
     return rule < other.rule;
   }
 };
@@ -331,13 +327,13 @@ struct Parser {
     
   }
 
-  void add_node(NodeIndex node, int prop_node, int parent, int end, int crumb) { //does not check whether it exists
+  void add_node(NodeIndex node, int prop_node, int parent = -1, int crumb = -1) { //does not check whether it exists
     stack.insert(node);
     nodes.push_back(node);
     properties.push_back(prop_node);
     parents.push_back(parent == -1 ? set<int>() : set<int>{parent});
-    ends.push_back(end == -1 ? set<int>() : set<int>{end});
     crumbs.push_back(crumb == -1 ? set<int>() : set<int>{crumb});
+    ends.push_back(set<int>());
   }
   
   int parse(string input_file) {
@@ -348,13 +344,7 @@ struct Parser {
     priority_queue<Head> heads;
     
     //add the ROOT node
-    stack.insert(NodeIndex{0, 0, 0});
-    nodes.push_back(NodeIndex{0, 0, 0});
-    properties.push_back(0);
-    parents.push_back(set<int>());
-    ends.push_back(set<int>());
-    crumbs.push_back(set<int>());
-  
+    add_node(NodeIndex{0, 0, 0}, 0);
   
     //add ROOT head
     heads.push(Head{0, 0, 0});
@@ -393,35 +383,19 @@ struct Parser {
 	    auto new_node = NodeIndex{cur, nodes[p].rule + 1, (int)nodes.size()};
 
 	  
-	    //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
-	    //cout << p << endl;
-	    if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) { // && properties[stack.find(new_node)->nodeid] == properties[p])
-	      //cout << new_node << " already exists" << " " << ruleset.types[new_node.rule] << endl;
+	    if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) {
 	      int existing_id = stack.find(new_node)->nodeid;
 	      int existing_prop = properties[existing_id];
 	      int parent_prop = properties[p];
-	      //if (existing_prop != parent_prop) {
+	      
 	      parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
 	      crumbs[existing_id].insert(head.node);
-	      //  properties[p] = properties[existing_prop];
-
-	      //  //test: //should instead check ends and add them directly?
-	      //  auto new_node = nodes[existing_id];
-	      //  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
-	    
-	      //}
-
+	      
 	    } else {
 	      if (DEBUG) cout << "adding " << new_node << endl;
-	      stack.insert(new_node);
-	      nodes.push_back(new_node);
-	      properties.push_back(properties[p]);
-	      parents.push_back(set<int>());
-	      ends.push_back(set<int>());
-	      crumbs.push_back(set<int>{head.node});
-	    
+	      add_node(new_node, properties[p], -1, head.node);
+	      
 	      heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
-	      //}
 	    }
 	  }
 	}
@@ -440,13 +414,8 @@ struct Parser {
 	  auto new_node = NodeIndex{cur + m, r+1, (int)nodes.size()};
 
 	  if (DEBUG) cout << "adding " << new_node << endl;
-	  stack.insert(new_node);
-	  nodes.push_back(new_node);
-	  properties.push_back(properties[n]);
-	  parents.push_back(set<int>());
-	  ends.push_back(set<int>());
-	  crumbs.push_back(set<int>{n});
-
+	  add_node(new_node, properties[n], -1, n);
+	  
 	  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 	}
 	break;
@@ -462,8 +431,6 @@ struct Parser {
 	    if (stack.count(ni)) { //node exists
 	      int id = stack.find(ni)->nodeid;
 
-	      //int n_ends = ends[id].size();
-	      //if (!parents[id].count(n)) //should not be needed?
 	      parents[id].insert(n);
 	      crumbs[id].insert(n);
 
@@ -478,23 +445,12 @@ struct Parser {
 		  int existing_id = stack.find(new_node)->nodeid;
 		  int existing_prop = properties[existing_id];
 		  int our_prop = properties[n];
-		  //if (existing_prop != our_prop) {
+
 		  parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
 		  crumbs[existing_id].insert(crumb_id);
-		  //properties[n] = properties[existing_prop];
-		  //auto new_node = nodes[existing_id];
-		  //heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
-		  //}
-		
-		  continue; // add crumbs?
 		} else { //add node
 		  if (DEBUG) cout << "adding " << new_node << endl;
-		  stack.insert(new_node);
-		  nodes.push_back(new_node);
-		  properties.push_back(properties[n]);
-		  parents.push_back(set<int>{});
-		  ends.push_back(set<int>());
-		  crumbs.push_back(set<int>{crumb_id}); //TODO: how to get the return from the end?
+		  add_node(new_node, properties[n], -1, crumb_id);
 		
 		  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 		}
@@ -504,12 +460,8 @@ struct Parser {
 	      auto new_node = ni;
 
 	      if (DEBUG) cout << "adding " << new_node << endl;
-	      stack.insert(new_node);
-	      nodes.push_back(new_node);
-	      properties.push_back(new_node.nodeid);
-	      parents.push_back(set<int>{n});
-	      ends.push_back(set<int>());
-	      crumbs.push_back(set<int>{n});
+	      add_node(new_node, new_node.nodeid, n, n);
+
 	      heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 	    }
 	  }
