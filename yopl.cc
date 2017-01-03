@@ -366,7 +366,8 @@ int parse(string gram_file, string input_file) {
       if (head.cursor == buffer.size()) {
 	int n = head.node;
 	while (crumbs[n].size()) {
-	  cout << nodes[n] << endl;
+	  if (ruleset.names[nodes[n].rule].size() && ruleset.names[nodes[n].rule] != "ws")
+	    cout << ruleset.names[nodes[n].rule] << " " << nodes[n] << endl;
 	  n = *crumbs[n].begin();
 	}
       
@@ -509,6 +510,8 @@ int parse(string gram_file, string input_file) {
       break;
     }
   }
+
+  
 }
 
 int main(int argc, char **argv) {
