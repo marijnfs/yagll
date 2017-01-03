@@ -1,0 +1,9 @@
++ post process parse result into usable format
++ parse time seems quadratic, need some 'return crompression' or something like that
++ how to define the compiler rules?
+-- first need variable definition (int float), arithmetic operations, load store ops.
+-- control flow
+-- strings
+-- struct, vector
+-- functions
+-- link to external libraries / c libraries
