@@ -317,206 +317,231 @@ int match(RE2 &matcher, string &str, int pos = 0) {
   return -1;
 }
 
-int parse(string gram_file, string input_file) {
+struct Parser {
+  RuleSet ruleset;
+
   set<NodeIndex> stack;
   vector<NodeIndex> nodes;
   vector<int> properties;
   vector<set<int>> parents;
   vector<set<int>> ends;
   vector<set<int>> crumbs;
-  
-  
-  priority_queue<Head> heads;
-  
-  std::ifstream infile(input_file);
-  std::string buffer((std::istreambuf_iterator<char>(infile)),
-		  std::istreambuf_iterator<char>());
-  
-  RuleSet ruleset(gram_file);
 
-  //add the ROOT node
-  stack.insert(NodeIndex{0, 0, 0});
-  nodes.push_back(NodeIndex{0, 0, 0});
-  properties.push_back(0);
-  parents.push_back(set<int>());
-  ends.push_back(set<int>());
-  crumbs.push_back(set<int>());
-  
-  
-  //add ROOT head
-  heads.push(Head{0, 0, 0});
-
-  //Start Parsing
-  while(heads.size()) {
-    Head head = heads.top();
-    if (DEBUG) cout << "head: " << head << " " << ruleset.types[head.rule] << endl;
-
-    /*if (nodes.size() > 1000) {
-      cout << "nodes: ";
-      for (int n(0); n < nodes.size(); ++n) {
-	cout << nodes[n].cursor << "r" << nodes[n].rule << " ";
-      }
-      cout << endl;
-      return -1;
-      }*/
+  Parser(string gram_file) : ruleset(gram_file) {
     
-    heads.pop();
-    switch (ruleset.types[head.rule]) {
-    case END:
-      if (head.cursor == buffer.size()) {
-	int n = head.node;
-	while (crumbs[n].size()) {
-	  if (ruleset.names[nodes[n].rule].size() && ruleset.names[nodes[n].rule] != "ws")
-	    cout << ruleset.names[nodes[n].rule] << " " << nodes[n] << endl;
-	  n = *crumbs[n].begin();
+  }
+
+  void add_node(NodeIndex node, int prop_node, int parent, int end, int crumb) { //does not check whether it exists
+    stack.insert(node);
+    nodes.push_back(node);
+    properties.push_back(prop_node);
+    parents.push_back(parent == -1 ? set<int>() : set<int>{parent});
+    ends.push_back(end == -1 ? set<int>() : set<int>{end});
+    crumbs.push_back(crumb == -1 ? set<int>() : set<int>{crumb});
+  }
+  
+  int parse(string input_file) {
+    std::ifstream infile(input_file);
+    std::string buffer((std::istreambuf_iterator<char>(infile)),
+		       std::istreambuf_iterator<char>());
+
+    priority_queue<Head> heads;
+    
+    //add the ROOT node
+    stack.insert(NodeIndex{0, 0, 0});
+    nodes.push_back(NodeIndex{0, 0, 0});
+    properties.push_back(0);
+    parents.push_back(set<int>());
+    ends.push_back(set<int>());
+    crumbs.push_back(set<int>());
+  
+  
+    //add ROOT head
+    heads.push(Head{0, 0, 0});
+
+    //Start Parsing
+    int end_node(0);
+    while(heads.size() && end_node == 0) {
+      Head head = heads.top();
+      if (DEBUG) cout << "head: " << head << " " << ruleset.types[head.rule] << endl;
+
+      /*if (nodes.size() > 1000) {
+	cout << "nodes: ";
+	for (int n(0); n < nodes.size(); ++n) {
+	cout << nodes[n].cursor << "r" << nodes[n].rule << " ";
 	}
-      
-	cout << "SUCCESS" << endl;
-	return 0;
-      }
-      break;
-    case RETURN:
-      {
-	int properties_node = properties[head.node];
-	int cur = head.cursor;
-	ends[properties_node].insert(cur);
-	set<int> par = parents[properties_node];
+	cout << endl;
+	return -1;
+	}*/
+    
+      heads.pop();
+      switch (ruleset.types[head.rule]) {
+      case END:
+	if (head.cursor == buffer.size()) {
+	  end_node = head.node;
+	  continue;
+	}
+	break;
+      case RETURN:
+	{
+	  int properties_node = properties[head.node];
+	  int cur = head.cursor;
+	  ends[properties_node].insert(cur);
+	  set<int> par = parents[properties_node];
 	
-	for (int p : par) {
-	  auto new_node = NodeIndex{cur, nodes[p].rule + 1, (int)nodes.size()};
+	  for (int p : par) {
+	    auto new_node = NodeIndex{cur, nodes[p].rule + 1, (int)nodes.size()};
 
 	  
-	  //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
-	  //cout << p << endl;
-	  if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) { // && properties[stack.find(new_node)->nodeid] == properties[p])
-	    //cout << new_node << " already exists" << " " << ruleset.types[new_node.rule] << endl;
-	    int existing_id = stack.find(new_node)->nodeid;
-	    int existing_prop = properties[existing_id];
-	    int parent_prop = properties[p];
-	    //if (existing_prop != parent_prop) {
-	    parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
-	    crumbs[existing_id].insert(head.node);
-	    //  properties[p] = properties[existing_prop];
+	    //TODO: probably should make properties a vec of sets, multiple parents can cause any node in the middle
+	    //cout << p << endl;
+	    if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) { // && properties[stack.find(new_node)->nodeid] == properties[p])
+	      //cout << new_node << " already exists" << " " << ruleset.types[new_node.rule] << endl;
+	      int existing_id = stack.find(new_node)->nodeid;
+	      int existing_prop = properties[existing_id];
+	      int parent_prop = properties[p];
+	      //if (existing_prop != parent_prop) {
+	      parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
+	      crumbs[existing_id].insert(head.node);
+	      //  properties[p] = properties[existing_prop];
 
-	    //  //test: //should instead check ends and add them directly?
-	    //  auto new_node = nodes[existing_id];
-	    //  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+	      //  //test: //should instead check ends and add them directly?
+	      //  auto new_node = nodes[existing_id];
+	      //  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 	    
-	    //}
+	      //}
 
-	  } else {
-	    if (DEBUG) cout << "adding " << new_node << endl;
-	    stack.insert(new_node);
-	    nodes.push_back(new_node);
-	    properties.push_back(properties[p]);
-	    parents.push_back(set<int>());
-	    ends.push_back(set<int>());
-	    crumbs.push_back(set<int>{head.node});
+	    } else {
+	      if (DEBUG) cout << "adding " << new_node << endl;
+	      stack.insert(new_node);
+	      nodes.push_back(new_node);
+	      properties.push_back(properties[p]);
+	      parents.push_back(set<int>());
+	      ends.push_back(set<int>());
+	      crumbs.push_back(set<int>{head.node});
 	    
-	    heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
-	    //}
+	      heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+	      //}
+	    }
 	  }
 	}
-      }
-      break;
-    case MATCH:
-      {
-	int n = head.node;
-	int cur = head.cursor;
-	int r = head.rule;
-	int m = match(*ruleset.matcher[r], buffer, cur);
-	if (DEBUG) cout << "Match rule: '" << ruleset.matcher[r]->pattern() << "' [" << cur<< "] matched " << m << endl;
+	break;
+      case MATCH:
+	{
+	  int n = head.node;
+	  int cur = head.cursor;
+	  int r = head.rule;
+	  int m = match(*ruleset.matcher[r], buffer, cur);
+	  if (DEBUG) cout << "Match rule: '" << ruleset.matcher[r]->pattern() << "' [" << cur<< "] matched " << m << endl;
 	
-	if (m < 0) break; //no match
+	  if (m < 0) break; //no match
 
-	//allright, add the node
-	auto new_node = NodeIndex{cur + m, r+1, (int)nodes.size()};
+	  //allright, add the node
+	  auto new_node = NodeIndex{cur + m, r+1, (int)nodes.size()};
 
-	if (DEBUG) cout << "adding " << new_node << endl;
-	stack.insert(new_node);
-	nodes.push_back(new_node);
-	properties.push_back(properties[n]);
-	parents.push_back(set<int>());
-	ends.push_back(set<int>());
-	crumbs.push_back(set<int>{n});
+	  if (DEBUG) cout << "adding " << new_node << endl;
+	  stack.insert(new_node);
+	  nodes.push_back(new_node);
+	  properties.push_back(properties[n]);
+	  parents.push_back(set<int>());
+	  ends.push_back(set<int>());
+	  crumbs.push_back(set<int>{n});
 
-	heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
-      }
-      break;
-    case OPTION:
-      {
-	int n = head.node;
-	int cur = head.cursor;
-	int r = head.rule;
-	vector<int> &args = ruleset.arguments[r];
+	  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+	}
+	break;
+      case OPTION:
+	{
+	  int n = head.node;
+	  int cur = head.cursor;
+	  int r = head.rule;
+	  vector<int> &args = ruleset.arguments[r];
 
-	for (int new_r : args) {
-	  NodeIndex ni{cur, new_r, (int)nodes.size()};
-	  if (stack.count(ni)) { //node exists
-	    int id = stack.find(ni)->nodeid;
+	  for (int new_r : args) {
+	    NodeIndex ni{cur, new_r, (int)nodes.size()};
+	    if (stack.count(ni)) { //node exists
+	      int id = stack.find(ni)->nodeid;
 
-	    //int n_ends = ends[id].size();
-	    //if (!parents[id].count(n)) //should not be needed?
-	    parents[id].insert(n);
-	    crumbs[id].insert(n);
+	      //int n_ends = ends[id].size();
+	      //if (!parents[id].count(n)) //should not be needed?
+	      parents[id].insert(n);
+	      crumbs[id].insert(n);
 
-	    //if already has ends, add nexts
-	    set<int> ends_copy = ends[id];
-	    for (int e : ends_copy) {
-	      auto new_node = NodeIndex{e, r + 1, (int)nodes.size()};
-	      NodeIndex crumb_node{e, ruleset.returns[new_r], 0}; //should exist
-	      int crumb_id = stack.find(crumb_node)->nodeid;
+	      //if already has ends, add nexts
+	      set<int> ends_copy = ends[id];
+	      for (int e : ends_copy) {
+		auto new_node = NodeIndex{e, r + 1, (int)nodes.size()};
+		NodeIndex crumb_node{e, ruleset.returns[new_r], 0}; //should exist
+		int crumb_id = stack.find(crumb_node)->nodeid;
 	      
-	      if (stack.count(new_node)) {
-		int existing_id = stack.find(new_node)->nodeid;
-		int existing_prop = properties[existing_id];
-		int our_prop = properties[n];
-		//if (existing_prop != our_prop) {
-		parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
-		crumbs[existing_id].insert(crumb_id);
+		if (stack.count(new_node)) {
+		  int existing_id = stack.find(new_node)->nodeid;
+		  int existing_prop = properties[existing_id];
+		  int our_prop = properties[n];
+		  //if (existing_prop != our_prop) {
+		  parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
+		  crumbs[existing_id].insert(crumb_id);
 		  //properties[n] = properties[existing_prop];
 		  //auto new_node = nodes[existing_id];
 		  //heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
 		  //}
 		
-		continue; // add crumbs?
-	      } else { //add node
-		if (DEBUG) cout << "adding " << new_node << endl;
-		stack.insert(new_node);
-		nodes.push_back(new_node);
-		properties.push_back(properties[n]);
-		parents.push_back(set<int>{});
-		ends.push_back(set<int>());
-		crumbs.push_back(set<int>{crumb_id}); //TODO: how to get the return from the end?
+		  continue; // add crumbs?
+		} else { //add node
+		  if (DEBUG) cout << "adding " << new_node << endl;
+		  stack.insert(new_node);
+		  nodes.push_back(new_node);
+		  properties.push_back(properties[n]);
+		  parents.push_back(set<int>{});
+		  ends.push_back(set<int>());
+		  crumbs.push_back(set<int>{crumb_id}); //TODO: how to get the return from the end?
 		
-		heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+		  heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+		}
 	      }
-	    }
-	  } else {
-	    //create node
-	    auto new_node = ni;
+	    } else {
+	      //create node
+	      auto new_node = ni;
 
-	    if (DEBUG) cout << "adding " << new_node << endl;
-	    stack.insert(new_node);
-	    nodes.push_back(new_node);
-	    properties.push_back(new_node.nodeid);
-	    parents.push_back(set<int>{n});
-	    ends.push_back(set<int>());
-	    crumbs.push_back(set<int>{n});
-	    heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+	      if (DEBUG) cout << "adding " << new_node << endl;
+	      stack.insert(new_node);
+	      nodes.push_back(new_node);
+	      properties.push_back(new_node.nodeid);
+	      parents.push_back(set<int>{n});
+	      ends.push_back(set<int>());
+	      crumbs.push_back(set<int>{n});
+	      heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+	    }
 	  }
 	}
+	break;
       }
-      break;
     }
-  }
 
-  
-}
+    //post processing
+    if (end_node) {
+      int n = end_node;
+      while (crumbs[n].size()) {
+	if (ruleset.names[nodes[n].rule].size() && ruleset.names[nodes[n].rule] != "ws")
+	  cout << ruleset.names[nodes[n].rule] << " " << nodes[n] << endl;
+	n = *crumbs[n].begin(); //only select first crumb, could check for multiple paths
+      }
+      
+      cout << "SUCCESS" << endl;
+      return 0;
+    } else {
+      cout << "FAILED" << endl;
+      return 1;
+    }
+
+  }
+};
+
 
 int main(int argc, char **argv) {
   cout << "yopl" << endl;
-  return parse("gram.txt", "input.txt");
+  Parser parser("gram.txt");
+  return parser.parse("input.txt");
 }
 
 #endif
