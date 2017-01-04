@@ -372,34 +372,6 @@ struct Parser {
 	  continue;
 	}
 	break;
-      case RETURN:
-	{
-	  int properties_node = properties[head.node];
-	  int cur = head.cursor;
-	  ends[properties_node].insert(cur);
-	  set<int> par = parents[properties_node];
-	
-	  for (int p : par) {
-	    auto new_node = NodeIndex{cur, nodes[p].rule + 1, (int)nodes.size()};
-
-	  
-	    if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) {
-	      int existing_id = stack.find(new_node)->nodeid;
-	      int existing_prop = properties[existing_id];
-	      int parent_prop = properties[p];
-	      
-	      parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
-	      crumbs[existing_id].insert(head.node);
-	      
-	    } else {
-	      if (DEBUG) cout << "adding " << new_node << endl;
-	      add_node(new_node, properties[p], -1, head.node);
-	      
-	      heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
-	    }
-	  }
-	}
-	break;
       case MATCH:
 	{
 	  int n = head.node;
@@ -467,16 +439,73 @@ struct Parser {
 	  }
 	}
 	break;
+      case RETURN:
+	{
+	  int properties_node = properties[head.node];
+	  int cur = head.cursor;
+	  ends[properties_node].insert(cur);
+	  set<int> par = parents[properties_node];
+	
+	  for (int p : par) {
+	    auto new_node = NodeIndex{cur, nodes[p].rule + 1, (int)nodes.size()};
+
+	  
+	    if (stack.count(new_node) && ruleset.types[new_node.rule] != RETURN) {
+	      int existing_id = stack.find(new_node)->nodeid;
+	      int existing_prop = properties[existing_id];
+	      int parent_prop = properties[p];
+	      
+	      parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
+	      crumbs[existing_id].insert(head.node);
+	      
+	    } else {
+	      if (DEBUG) cout << "adding " << new_node << endl;
+	      add_node(new_node, properties[p], -1, head.node);
+	      
+	      heads.push(Head{new_node.cursor, new_node.rule, new_node.nodeid});
+	    }
+	  }
+	}
+	break;
       }
     }
 
     //post processing
+    vector<int> active_nodes;
     if (end_node) {
       int n = end_node;
+
       while (crumbs[n].size()) {
-	if (ruleset.names[nodes[n].rule].size() && ruleset.names[nodes[n].rule] != "ws")
-	  cout << ruleset.names[nodes[n].rule] << " " << nodes[n] << endl;
+	if (ruleset.names[nodes[n].rule].size() && ruleset.names[nodes[n].rule] != "ws") {
+	  active_nodes.push_back(n);
+	}
 	n = *crumbs[n].begin(); //only select first crumb, could check for multiple paths
+      }
+
+      sort(active_nodes.begin(), active_nodes.end());
+      
+      int n_nodes = active_nodes.size();
+      vector<string> names(n_nodes);
+      vector<int> starts(n_nodes);
+      vector<int> ends(n_nodes);
+
+      map<int, int> last_of_same_property;
+      
+      for (int i(0); i < n_nodes; ++i) {
+	int n = active_nodes[i];
+	int p = properties[n];
+	cout << p << endl;
+	if (last_of_same_property.count(p)) 
+	  ends[last_of_same_property[p]] = nodes[n].cursor;
+	
+	last_of_same_property[p] = n;
+	  
+	names[i] = ruleset.names[nodes[n].rule];
+	starts[i] = nodes[n].cursor;
+      }
+
+      for (int i(0); i < n_nodes; ++i) {
+	cout << names[i] << " " << starts[i] << "-" << ends[i] << " " << buffer.substr(starts[i], min<int>(starts[i] + 5, buffer.size())) << endl;
       }
       
       cout << "SUCCESS" << endl;
