@@ -248,11 +248,13 @@ struct RuleSet {
     //print rules
     for (int i(0); i < types.size(); ++i) {
       cout << i << ": [" << types[i] << "] ";
+      cout << names[i] << " :";
       if (types[i] == OPTION)
 	for (auto i : arguments[i])
 	  cout << i << ",";
       if (types[i] == MATCH)
 	cout << "'" << matcher[i]->pattern() << "'";
+      
       cout << endl;
     }
   }
@@ -473,13 +475,21 @@ struct Parser {
     //post processing
     vector<int> active_nodes;
     if (end_node) {
-      int n = end_node;
+      set<int> seen_nodes;
+      queue<int> q;
+      q.push(end_node);
+      //int n = end_node;
 
-      while (crumbs[n].size()) {
-	
-	active_nodes.push_back(n);
-	  //}
-	n = *crumbs[n].begin(); //only select first crumb, could check for multiple paths
+      while (!q.empty()) {
+	int n = q.front();
+	if (!seen_nodes.count(n)) {
+	  active_nodes.push_back(n);
+	  seen_nodes.insert(n);
+	  
+	  for (int c : crumbs[n])
+	    q.push(c);
+	}
+	q.pop();
       }
 
       reverse(active_nodes.begin(), active_nodes.end());
@@ -499,6 +509,8 @@ struct Parser {
       bool last_was_match(false); int last_n(0); //little hacky, matches dont return
       for (int n : active_nodes) {
 	NodeIndex &node = nodes[n];
+	cout << "active: " << node << endl;
+
 	if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) {
 	  node_map[n] = n_parse_nodes++;
 	  names.push_back(ruleset.names[node.rule]);
@@ -533,7 +545,6 @@ struct Parser {
       
       for (int i(0); i < n_parse_nodes; ++i) {
 	cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
-
       }
       
       cout << "SUCCESS" << endl;
