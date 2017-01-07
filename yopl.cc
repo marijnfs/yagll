@@ -476,36 +476,64 @@ struct Parser {
       int n = end_node;
 
       while (crumbs[n].size()) {
-	if (ruleset.names[nodes[n].rule].size() && ruleset.names[nodes[n].rule] != "ws") {
-	  active_nodes.push_back(n);
-	}
+	
+	active_nodes.push_back(n);
+	  //}
 	n = *crumbs[n].begin(); //only select first crumb, could check for multiple paths
       }
 
-      sort(active_nodes.begin(), active_nodes.end());
-      
-      int n_nodes = active_nodes.size();
-      vector<string> names(n_nodes);
-      vector<int> starts(n_nodes);
-      vector<int> ends(n_nodes);
+      reverse(active_nodes.begin(), active_nodes.end());
 
-      map<int, int> last_of_same_property;
-      
-      for (int i(0); i < n_nodes; ++i) {
-	int n = active_nodes[i];
-	int p = properties[n];
-	cout << p << endl;
-	if (last_of_same_property.count(p)) 
-	  ends[last_of_same_property[p]] = nodes[n].cursor;
-	
-	last_of_same_property[p] = n;
-	  
-	names[i] = ruleset.names[nodes[n].rule];
-	starts[i] = nodes[n].cursor;
+
+      //run through active nodes, filtering and ending
+      set<string> filter_set;
+      filter_set.insert("ws");
+
+      vector<string> names;
+      vector<int> starts;
+      vector<int> ends;
+
+      map<int, int> node_map;
+      int n_parse_nodes(0);
+
+      bool last_was_match(false); int last_n(0); //little hacky, matches dont return
+      for (int n : active_nodes) {
+	NodeIndex &node = nodes[n];
+	if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) {
+	  node_map[n] = n_parse_nodes++;
+	  names.push_back(ruleset.names[node.rule]);
+	  starts.push_back(node.cursor);
+	  ends.push_back(0);
+	}
+	    
+	if (ruleset.types[node.rule] == RETURN)
+	  for (int p : parents[properties[n]])
+	    if (node_map.count(p))
+	      ends[node_map[p]] = node.cursor;
+
+	if (last_was_match) {
+	  ends[node_map[last_n]] = node.cursor;
+	  last_was_match = false;
+	}
+	if (ruleset.types[node.rule] == MATCH) {
+	  last_was_match = true;
+	  last_n = n;
+	}
+	/*
+	cout << "node: " << n << " cursor: " << nodes[n].cursor << " "  << ruleset.types[nodes[n].rule] << endl;
+	//int p = properties[n];
+	if (parents[n].size()) {
+	  cout << "parents: ";
+	  for (auto p : parents[n])
+	    cout << p << " ";
+	  cout << endl;
+	}
+	*/
       }
+      
+      for (int i(0); i < n_parse_nodes; ++i) {
+	cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
 
-      for (int i(0); i < n_nodes; ++i) {
-	cout << names[i] << " " << starts[i] << "-" << ends[i] << " " << buffer.substr(starts[i], min<int>(starts[i] + 5, buffer.size())) << endl;
       }
       
       cout << "SUCCESS" << endl;
