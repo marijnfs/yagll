@@ -502,6 +502,7 @@ struct Parser {
       vector<string> names;
       vector<int> starts;
       vector<int> ends;
+      vector<set<int>> children;
 
       map<int, int> node_map;
       int n_parse_nodes(0);
@@ -515,15 +516,24 @@ struct Parser {
 	  node_map[n] = n_parse_nodes++;
 	  names.push_back(ruleset.names[node.rule]);
 	  starts.push_back(node.cursor);
-	  ends.push_back(0);
+	  ends.push_back(-1);
+	  children.push_back(set<int>());
+	  
+	  //make link from parent to child
+	  for (int p : parents[properties[n]])
+	    if (node_map.count(p))
+	      children[node_map[p]].insert(node_map[n]);
 	}
-	    
+
+	
+	//set end for the matching rule of return
 	if (ruleset.types[node.rule] == RETURN)
 	  ends[node_map[properties[n]]] = node.cursor;
 	  //for (int p : parents[properties[n]])
 	  //if (node_map.count(p))
 	  //ends[node_map[p]] = node.cursor;
 
+	//set ends for MATCH nodes
 	if (last_was_match) {
 	  ends[node_map[last_n]] = node.cursor;
 	  last_was_match = false;
@@ -532,6 +542,8 @@ struct Parser {
 	  last_was_match = true;
 	  last_n = n;
 	}
+
+	
 	/*
 	cout << "node: " << n << " cursor: " << nodes[n].cursor << " "  << ruleset.types[nodes[n].rule] << endl;
 	//int p = properties[n];
@@ -543,12 +555,21 @@ struct Parser {
 	}
 	*/
       }
-      
+
+      ofstream dotfile("parsetree.dot");
+
+      dotfile << "digraph parsetree {" << endl;      
       for (int i(0); i < n_parse_nodes; ++i) {
-	if (ends[i])
+	if (ends[i] >= 0) {//not all active nodes are valid; if they are unended they never matched completely
 	  cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
+	  dotfile << "node_" << i << " [label=\"" << names[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]\"];" << endl;
+	  for (int c : children[i]) {
+	    if (ends[c] != -1)
+	      dotfile << "node_" << i << " -> node_" << c << ";" << endl;
+	  }
+	}
       }
-      
+      dotfile << "}" << endl;
       cout << "SUCCESS" << endl;
       return 0;
     } else {
