@@ -519,9 +519,10 @@ struct Parser {
 	}
 	    
 	if (ruleset.types[node.rule] == RETURN)
-	  for (int p : parents[properties[n]])
-	    if (node_map.count(p))
-	      ends[node_map[p]] = node.cursor;
+	  ends[node_map[properties[n]]] = node.cursor;
+	  //for (int p : parents[properties[n]])
+	  //if (node_map.count(p))
+	  //ends[node_map[p]] = node.cursor;
 
 	if (last_was_match) {
 	  ends[node_map[last_n]] = node.cursor;
@@ -544,7 +545,8 @@ struct Parser {
       }
       
       for (int i(0); i < n_parse_nodes; ++i) {
-	cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
+	if (ends[i])
+	  cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
       }
       
       cout << "SUCCESS" << endl;
