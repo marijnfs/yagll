@@ -415,13 +415,13 @@ struct Parser {
 		NodeIndex crumb_node{e, ruleset.returns[new_r], 0}; //should exist
 		int crumb_id = stack.find(crumb_node)->nodeid;
 	      
-		if (stack.count(new_node)) {
+		if (stack.count(new_node)) { //TODO: maybe we should actually keep checking for ends here
 		  int existing_id = stack.find(new_node)->nodeid;
 		  int existing_prop = properties[existing_id];
 		  int our_prop = properties[n];
 
 		  parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
-		  crumbs[existing_id].insert(crumb_id);
+		  crumbs[existing_id].insert(crumbs[crumb_id].begin(), crumbs[crumb_id].end());
 		} else { //add node
 		  if (DEBUG) cout << "adding " << new_node << endl;
 		  add_node(new_node, properties[n], -1, crumb_id);
@@ -521,8 +521,8 @@ struct Parser {
 	  
 	  //make link from parent to child
 	  for (int p : parents[properties[n]])
-	    if (node_map.count(p))
-	      children[node_map[p]].insert(node_map[n]);
+	    if (node_map.count(properties[p]))
+	      children[node_map[properties[p]]].insert(node_map[n]);
 	}
 
 	
