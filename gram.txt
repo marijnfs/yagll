@@ -1,4 +1,5 @@
-S line '\n' S | ''
+S entry '\n' S | ''
+entry line | afunc
 line exp | stat
 stat name ws '=' ws exp
 exp binop | number | name
@@ -8,3 +9,5 @@ minus exp ws '-' ws exp
 name [[:alpha:]]+
 number [[:digit:]]+
 ws ' *'
+afunc 'func' ws name '\(' args '\)'
+args name | name ',' ws args
