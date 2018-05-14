@@ -271,13 +271,18 @@ int match(RE2 &matcher, string &str, int pos) {
 Parser::Parser(string gram_file) : ruleset(gram_file) {
 }
 
-void Parser::add_node(NodeIndex node, int prop_node, int parent, int crumb) { //does not check whether it exists
+void Parser::push_node(int cursor, int rule, int prop_node, int parent, int crumb) { //does not check whether it exists
+  NodeIndex node{cursor, rule, int(nodes.size())};
+
   node_occurence.insert(node);
   nodes.push_back(node);
-  properties.push_back(prop_node);
+
+  properties.push_back(prop_node == -1 ? node.nodeid : prop_node);
   parents.push_back(parent == -1 ? set<int>() : set<int>{parent});
   crumbs.push_back(crumb == -1 ? set<int>() : set<int>{crumb});
   ends.push_back(set<int>());
+
+  heads.push(node);
 }
 
 int Parser::parse(string input_file) {
@@ -288,20 +293,17 @@ int Parser::parse(string input_file) {
   heads = priority_queue<NodeIndex>(); //clear your head! //stupid pqueue doesn't have clear method
   
   //add the ROOT node
-  //The NodeIndex gets a: cursor in file, rule index and node index
-  //The second 0 to add_node is the property nodeid
-  add_node(NodeIndex{0, 0, 0}, 0); 
-  
-  
-  //add ROOT head
-  heads.push(NodeIndex{0, 0, 0});
+  push_node(0, 0, 0); //cursor, rule, prop node
   
   //Start Parsing
   int end_node(0); //index to the end node, only gets set by the END rule
   while(heads.size() && end_node == 0) {
     NodeIndex head = heads.top(); //pop head of the queue
     heads.pop();
-        
+    
+    cout << head.cursor << " " << head.rule << " " << heads.size() <<  endl;
+    furthest = max(furthest, head.cursor);
+    
     if (DEBUG) cout << "head: " << head << " " << ruleset.types[head.rule] << endl;
     
     /*if (nodes.size() > 1000) {
@@ -319,7 +321,7 @@ int Parser::parse(string input_file) {
     int n = head.nodeid;
     int cur = head.cursor;
     int r = head.rule;
-
+    
     switch (ruleset.types[head.rule]) {
     case END:
       if (head.cursor == buffer.size()) {
@@ -334,17 +336,14 @@ int Parser::parse(string input_file) {
         //options node will be same as current node
         //crumb will be this node
         int m = match(*ruleset.matcher[r], buffer, cur);
-        if (DEBUG) cout << "Match rule: '" << ruleset.matcher[r]->pattern() << "' [" << cur<< "] matched " << m << endl;
+        if (DEBUG)
+          cout << "Match rule: '" << ruleset.matcher[r]->pattern() << "' [" << cur<< "] matched " << m << endl;
         
-        if (m < 0) break; //no match
+        if (m < 0)
+          break; //no match
         
         //all is well, add the node
-        auto new_node = NodeIndex{cur + m, r + 1, (int)nodes.size()};
-        
-        if (DEBUG) cout << "adding " << new_node << endl;
-        add_node(new_node, properties[n], -1, n);
-        
-        heads.push(NodeIndex{new_node.cursor, new_node.rule, new_node.nodeid});
+        push_node(cur + m, r + 1, properties[n], -1, n);
       }
       break;
     case OPTION:
@@ -357,14 +356,9 @@ int Parser::parse(string input_file) {
 
           //A node with same rule at this cursor can already be created by another rule (not rarely recursively, especially with right-recursive rules!)
           //We check if the node exists first
-          if (!node_occurence.count(ni)) {
+           if (!node_occurence.count(ni)) {
             //create new node
-            auto new_node = ni;
-
-            if (DEBUG) cout << "adding " << new_node << endl;
-            add_node(new_node, new_node.nodeid, n, n);
-
-            heads.push(NodeIndex{new_node.cursor, new_node.rule, new_node.nodeid});
+             push_node(cur, new_r, -1, n, n);
           } else {
             //node already exists, get the node
             int id = node_occurence.find(ni)->nodeid;
@@ -378,24 +372,24 @@ int Parser::parse(string input_file) {
             set<int> ends_copy = ends[id];
             for (int e : ends_copy) {
               //we can spawn the next node
-              auto new_node = NodeIndex{e, r + 1, (int)nodes.size()};
+              auto new_node = NodeIndex{e, r + 1};
               
               //This node already ended before, lets find that node
-              NodeIndex crumb_node{e, ruleset.returns[new_r], 0}; 
+              NodeIndex crumb_node{e, ruleset.returns[new_r]}; 
               int crumb_id = node_occurence.find(crumb_node)->nodeid;
               
-              if (node_occurence.count(new_node)) { //TODO: maybe we should actually keep checking for ends here
+              if (!node_occurence.count(new_node)) { //TODO: maybe we should actually keep checking for ends here
+                //add node
+                if (DEBUG)
+                  cout << "adding " << new_node << endl;
+                push_node(e, r + 1, properties[n], -1, crumb_id);
+              } else {
                 int existing_id = node_occurence.find(new_node)->nodeid;
                 int existing_prop = properties[existing_id];
                 int our_prop = properties[n];
                 
                 parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
                 crumbs[existing_id].insert(crumbs[crumb_id].begin(), crumbs[crumb_id].end());
-              } else { //add node
-                if (DEBUG) cout << "adding " << new_node << endl;
-                add_node(new_node, properties[n], -1, crumb_id);
-		
-                heads.push(NodeIndex{new_node.cursor, new_node.rule, new_node.nodeid});
               }
             }
           }
@@ -409,21 +403,18 @@ int Parser::parse(string input_file) {
         set<int> par = parents[properties_node];
 	
         for (int p : par) {
-          auto new_node = NodeIndex{cur, nodes[p].rule + 1, (int)nodes.size()};
-
+          auto new_node = NodeIndex{cur, nodes[p].rule + 1};
 	  
-          if (node_occurence.count(new_node) && ruleset.types[new_node.rule] != RETURN) {
+          if (!node_occurence.count(new_node)) {// || ruleset.types[new_node.rule] == RETURN) {
+            if (DEBUG) cout << "adding " << new_node << endl;
+            push_node(cur, nodes[p].rule + 1, properties[n], -1, head.nodeid);
+          } else {
             int existing_id = node_occurence.find(new_node)->nodeid;
             int existing_prop = properties[existing_id];
             int parent_prop = properties[p];
 	      
             parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
             crumbs[existing_id].insert(head.nodeid);
-	      
-          } else {
-            if (DEBUG) cout << "adding " << new_node << endl;
-            add_node(new_node, properties[p], -1, head.nodeid);
-            heads.push(NodeIndex{new_node.cursor, new_node.rule, new_node.nodeid});
           }
         }
       }
@@ -533,6 +524,8 @@ int Parser::parse(string input_file) {
     return 0;
   } else {
     cout << "FAILED" << endl;
+    cout << "at char: " << furthest << endl;
+    cout << "got to: " << buffer.substr(max(0, furthest - 5), 10) << endl;
     return 1;
   }
 

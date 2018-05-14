@@ -86,12 +86,13 @@ struct Parser {
   
   std::priority_queue<NodeIndex> heads; //active part, a queue with sorted nodes
   
-
+  int furthest = 0; //aux var, to see how far we got in case of fail
+  
   Parser(std::string gram_file);
 
   //add a node
   //does not check whether it exists
-  void add_node(NodeIndex node, int prop_node, int parent = -1, int crumb = -1); 
+  void push_node(int cursor, int rule, int prop_node, int parent = -1, int crumb = -1); 
 
   //parse a file
   int parse(std::string input_file);
