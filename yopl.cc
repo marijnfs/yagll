@@ -27,7 +27,7 @@ bool NodeIndex::operator>(NodeIndex const &other) const {
 }
 
 ostream &operator<<(ostream &out, NodeIndex &ni) {
-  return out << "c" << ni.cursor << " r" << ni.rule << " i" << ni.nodeid;
+  return out << "c" << ni.cursor << " r" << ni.rule << " i" << ni.id;
 }
 
 ostream &operator<<(ostream &out, RuleType &t) {
@@ -43,220 +43,6 @@ ostream &operator<<(ostream &out, RuleType &t) {
   }
 }
 
-RuleSet::RuleSet() {
-}
-  
-RuleSet::RuleSet(string filename) {
-  ifstream infile(filename.c_str());
-  
-  enum Mode {
-    BLANK = 0,
-    READ = 1,
-    ESCAPE = 2
-  };
-  
-  string line;
-  
-  map<string, vector<vector<string>>> rules;
-  
-  while (getline(infile, line)) {
-    cout << line << endl;
-    istringstream iss(line);
-    
-    string name;
-    iss >> name;
-    if (name.size() == 0)
-      continue;
-    cout << "name: " << name << endl;
-    
-    
-    Mode mode(BLANK);
-    string item;
-    vector<string> curitems;
-    vector<vector<string>> options;
-    
-    while (true) {
-      char c = iss.get();
-      if (c == EOF) {
-        if (item.size())
-          curitems.push_back(item);
-        options.push_back(curitems);
-        rules[name] = options;
-        break;
-      }
-      cout << c;
-      if (mode == BLANK) {
-        if (c == '|') { //a new set
-          //add current items to vector
-          options.push_back(curitems);
-          curitems.clear();
-          item.clear();
-        }
-        else if (c == ' ')
-          ;
-        else if (c == '\'')
-          mode = ESCAPE;
-        else {
-          item += c;
-          mode = READ;
-        }
-      }
-      else if (mode == READ) {
-        if (c == ' ') {
-          //add item to set
-          curitems.push_back(item);
-          item.clear();
-          mode = BLANK;
-        } else
-          item += c;
-      }
-      else if (mode == ESCAPE) {
-        if (c == '\'') {
-          //add item to set
-          curitems.push_back(item);
-          item.clear();
-          mode = BLANK;
-        } else
-          item += c;
-      }
-    }      
-    cout << endl;      
-  }
-  
-  
-  //Add the rules
-  add_option("ROOT", vector<int>{2});
-  add_end();
-  
-  typedef pair<int, string> so_pair;
-  multimap<int, string> search_option; //backsearching the option calls afterwards
-  map<string, int> rule_pos;
-  
-  for (auto r : rules) {
-    string name = r.first;
-    vector<vector<string>> &options = r.second;
-    
-    int start = size();
-    rule_pos[name] = start;
-    
-    cout << name << " " << start << endl;
-    
-    if (options.size() == 1) { //we dont need an option
-      auto &expressions = options[0];
-      for (auto &exp : expressions) {
-        if (rules.count(exp)) { //refers to a rule
-          cout << size() << " " << exp << endl;
-          search_option.insert(so_pair(size(), exp));
-          add_option();
-        } else { //a matcher
-          add_match(exp);
-        }
-      }
-      add_ret();
-      
-    } else { //we need an option
-      add_option();
-      add_ret();
-      
-      for (auto o : options) {
-        int op_start = size();
-        if (o.size() == 1 && rules.count(o[0])) {
-          search_option.insert(so_pair(start, o[0]));
-        } else {
-          arguments[start].push_back(size());
-          for (auto exp : o) {
-            if (rules.count(exp)) { //refers to a rule
-              search_option.insert(so_pair(size(), exp));
-              add_option();
-            } else { //a matcher
-              add_match(exp);
-            }
-          }
-          
-          add_ret();
-        }
-      }
-    }
-  }
-  
-  // back reference option calls
-  for (auto kv : search_option) {
-    int option_pos = kv.first;
-    string call_name = kv.second;
-    arguments[option_pos].push_back(rule_pos[call_name]);
-    cout << "adding " << option_pos << " " << call_name << " " << rule_pos[call_name] << endl;
-  }
-  
-  //set names
-  for (auto kv : rule_pos)
-    names[kv.second] = kv.first;
-  
-  //set returns
-  int last_ret(0);
-  for (int i(types.size()-1); i > 0; --i) {
-    if (types[i] == RETURN || types[i] == END)
-      last_ret = i;
-    returns[i] = last_ret;
-  }
-  
-  
-  //print rules
-  for (int i(0); i < types.size(); ++i) {
-    cout << i << ": [" << types[i] << "] ";
-    cout << names[i] << " :";
-    if (types[i] == OPTION)
-      for (auto i : arguments[i])
-        cout << i << ",";
-    if (types[i] == MATCH)
-      cout << "'" << matcher[i]->pattern() << "'";
-    
-    cout << endl;
-  }
-}
-
-void RuleSet::add_ret() {
-  names.push_back("");
-  types.push_back(RETURN);
-  arguments.push_back(vector<int>(0,0));
-  matcher.push_back(0);
-  returns.push_back(0);
-}
-
-void RuleSet::add_end() {
-  names.push_back("");
-  types.push_back(END);
-  arguments.push_back(vector<int>(0,0));
-  matcher.push_back(0);
-  returns.push_back(0);
-}
-
-void RuleSet::add_option(string name, vector<int> spawn) {
-  names.push_back(name);
-  types.push_back(OPTION);
-  arguments.push_back(spawn); //call S
-  matcher.push_back(0);
-  returns.push_back(0);
-}
-
-void RuleSet::add_option(vector<int> spawn) {
-  add_option("", spawn);
-}
-
-void RuleSet::add_match(string name, string matchstr) {
-  names.push_back(name);
-  types.push_back(MATCH);
-  arguments.push_back(vector<int>(0,0));
-  matcher.push_back(new RE2(matchstr));
-  returns.push_back(0);
-}
-
-void RuleSet::add_match(string matchstr) {
-  add_match("", matchstr);
-}
-
-int RuleSet::size() {
-  return types.size();
-}
 
 int match(RE2 &matcher, string &str, int pos) {
   re2::StringPiece match;
@@ -277,7 +63,7 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent, int crum
   node_occurence.insert(node);
   nodes.push_back(node);
 
-  properties.push_back(prop_node == -1 ? node.nodeid : prop_node);
+  properties.push_back(prop_node == -1 ? node.id : prop_node);
   parents.push_back(parent == -1 ? set<int>() : set<int>{parent});
   crumbs.push_back(crumb == -1 ? set<int>() : set<int>{crumb});
   ends.push_back(set<int>());
@@ -285,18 +71,20 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent, int crum
   heads.push(node);
 }
 
-int Parser::parse(string input_file) {
-  ifstream infile(input_file);
-  string buffer((istreambuf_iterator<char>(infile)),
+void Parser::load(string filename) {
+  ifstream infile(filename);
+  buffer = string(istreambuf_iterator<char>(infile),
                      istreambuf_iterator<char>());
+}
 
+void Parser::process() {
   heads = priority_queue<NodeIndex>(); //clear your head! //stupid pqueue doesn't have clear method
   
   //add the ROOT node
   push_node(0, 0, 0); //cursor, rule, prop node
   
   //Start Parsing
-  int end_node(0); //index to the end node, only gets set by the END rule
+  int end_node = 0; //index to the end node, only gets set by the END rule
   while(heads.size() && end_node == 0) {
     NodeIndex head = heads.top(); //pop head of the queue
     heads.pop();
@@ -318,14 +106,14 @@ int Parser::parse(string input_file) {
     // what type of rule is this node
 
     //convenience
-    int n = head.nodeid;
+    int n = head.id;
     int cur = head.cursor;
     int r = head.rule;
     
     switch (ruleset.types[head.rule]) {
     case END:
       if (head.cursor == buffer.size()) {
-        end_node = head.nodeid;
+        end_node = head.id;
         continue;
       }
       break;
@@ -361,7 +149,7 @@ int Parser::parse(string input_file) {
              push_node(cur, new_r, -1, n, n);
           } else {
             //node already exists, get the node
-            int id = node_occurence.find(ni)->nodeid;
+            int id = node_occurence.find(ni)->id;
             
             parents[id].insert(n); //add current node as a parent as well
             crumbs[id].insert(n); //we are the crumb now, also
@@ -372,24 +160,21 @@ int Parser::parse(string input_file) {
             set<int> ends_copy = ends[id];
             for (int e : ends_copy) {
               //we can spawn the next node
-              auto new_node = NodeIndex{e, r + 1};
-              
-              //This node already ended before, lets find that node
-              NodeIndex crumb_node{e, ruleset.returns[new_r]}; 
-              int crumb_id = node_occurence.find(crumb_node)->nodeid;
+              auto end_node = nodes[e];
+              auto new_node = NodeIndex{end_node.cursor, r + 1};
               
               if (!node_occurence.count(new_node)) { //TODO: maybe we should actually keep checking for ends here
                 //add node
                 if (DEBUG)
                   cout << "adding " << new_node << endl;
-                push_node(e, r + 1, properties[n], -1, crumb_id);
+                push_node(end_node.cursor, r + 1, properties[n], -1, e);
               } else {
-                int existing_id = node_occurence.find(new_node)->nodeid;
-                int existing_prop = properties[existing_id];
-                int our_prop = properties[n];
+                int existing_id = node_occurence.find(new_node)->id;
+                //int existing_prop = properties[existing_id];
+                //int our_prop = properties[n];
                 
-                parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
-                crumbs[existing_id].insert(crumbs[crumb_id].begin(), crumbs[crumb_id].end());
+                //parents[existing_prop].insert(parents[our_prop].begin(), parents[our_prop].end());
+                crumbs[existing_id].insert(e);
               }
             }
           }
@@ -398,31 +183,33 @@ int Parser::parse(string input_file) {
       break;
     case RETURN:
       {
-        int properties_node = properties[head.nodeid];
-        ends[properties_node].insert(cur);
+        int properties_node = properties[head.id];
+        ends[properties_node].insert(head.id);
+        
         set<int> par = parents[properties_node];
-	
         for (int p : par) {
           auto new_node = NodeIndex{cur, nodes[p].rule + 1};
 	  
           if (!node_occurence.count(new_node)) {// || ruleset.types[new_node.rule] == RETURN) {
             if (DEBUG) cout << "adding " << new_node << endl;
-            push_node(cur, nodes[p].rule + 1, properties[n], -1, head.nodeid);
+            push_node(cur, nodes[p].rule + 1, properties[n], -1, head.id);
           } else {
-            int existing_id = node_occurence.find(new_node)->nodeid;
-            int existing_prop = properties[existing_id];
-            int parent_prop = properties[p];
+            int existing_id = node_occurence.find(new_node)->id;
+            //int existing_prop = properties[existing_id];
+            //int parent_prop = properties[p];
 	      
-            parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
-            crumbs[existing_id].insert(head.nodeid);
+            //parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
+            crumbs[existing_id].insert(head.id);
           }
         }
       }
       break;
     }
   }
+}
 
-  //post processing
+int Parser::post_process() {
+  //// post processing
   vector<int> active_nodes;
   if (end_node) {
     set<int> seen_nodes;
@@ -528,6 +315,11 @@ int Parser::parse(string input_file) {
     cout << "got to: " << buffer.substr(max(0, furthest - 5), 10) << endl;
     return 1;
   }
+}
 
+int Parser::parse(string input_file) {
+  load(input_file);
+  process();
+  return post_process();
 }
 

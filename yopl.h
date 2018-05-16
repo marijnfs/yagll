@@ -14,11 +14,11 @@
 #include <iostream>
 
 
-const bool DEBUG(false);
+const bool DEBUG(true);
 
 struct NodeIndex {
   int cursor = -1, rule = -1;
-  int nodeid = -1;
+  int id = -1;
   
   bool operator<(NodeIndex const &other) const;
   bool operator>(NodeIndex const &other) const;
@@ -85,7 +85,10 @@ struct Parser {
   std::set<NodeIndex> node_occurence; //occurence set, checking if a node already exists
   
   std::priority_queue<NodeIndex> heads; //active part, a queue with sorted nodes
-  
+
+  std::string buffer;
+
+  int end_node = 0;
   int furthest = 0; //aux var, to see how far we got in case of fail
   
   Parser(std::string gram_file);
@@ -96,6 +99,12 @@ struct Parser {
 
   //parse a file
   int parse(std::string input_file);
+
+  void load(std::string filename);
+
+  void process();
+  
+  int post_process();
 };
 
 #endif
