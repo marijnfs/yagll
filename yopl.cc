@@ -69,6 +69,9 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent, int crum
   ends.push_back(set<int>());
 
   heads.push(node);
+  if (DEBUG)
+    cout << "adding: c" << cursor << " r" << rule << " i" << node.id << " p" << prop_node << " pa" << parent  << " c" << crumb << endl;
+
 }
 
 void Parser::load(string filename) {
@@ -84,12 +87,13 @@ void Parser::process() {
   push_node(0, 0, 0); //cursor, rule, prop node
   
   //Start Parsing
-  int end_node = 0; //index to the end node, only gets set by the END rule
+  end_node = 0; //index to the end node, only gets set by the END rule
   while(heads.size() && end_node == 0) {
     NodeIndex head = heads.top(); //pop head of the queue
     heads.pop();
     
-    cout << head.cursor << " " << head.rule << " " << heads.size() <<  endl;
+    cout << "POP: " << head.cursor << " " << head.rule << " " << heads.size() <<  endl;
+    
     furthest = max(furthest, head.cursor);
     
     if (DEBUG) cout << "head: " << head << " " << ruleset.types[head.rule] << endl;
@@ -106,14 +110,22 @@ void Parser::process() {
     // what type of rule is this node
 
     //convenience
-    int n = head.id;
+    int id = head.id;
     int cur = head.cursor;
     int r = head.rule;
-    
-    switch (ruleset.types[head.rule]) {
+    cout << "prop: " << properties[id];
+    if (parents[properties[id]].size()) {
+      cout << " parent:" ;
+      for (auto p : parents[properties[id]])
+        cout << p << " ";
+    }
+    cout << endl;
+      
+    switch (ruleset.types[r]) {
     case END:
-      if (head.cursor == buffer.size()) {
-        end_node = head.id;
+      cout << "END " << cur << " " << buffer.size() << endl;
+      if (cur == buffer.size()) {
+        end_node = id;
         continue;
       }
       break;
@@ -131,7 +143,7 @@ void Parser::process() {
           break; //no match
         
         //all is well, add the node
-        push_node(cur + m, r + 1, properties[n], -1, n);
+        push_node(cur + m, r + 1, properties[id], -1, id);
       }
       break;
     case OPTION:
@@ -146,13 +158,13 @@ void Parser::process() {
           //We check if the node exists first
            if (!node_occurence.count(ni)) {
             //create new node
-             push_node(cur, new_r, -1, n, n);
+             push_node(cur, new_r, -1, id, id);
           } else {
             //node already exists, get the node
             int id = node_occurence.find(ni)->id;
             
-            parents[id].insert(n); //add current node as a parent as well
-            crumbs[id].insert(n); //we are the crumb now, also
+            parents[id].insert(id); //add current node as a parent as well
+            crumbs[id].insert(id); //we are the crumb now, also
             
             //if already has ends, spawn nodes with the next rule
             //this gets complicated as crumbs have to be set properly as well
@@ -165,9 +177,7 @@ void Parser::process() {
               
               if (!node_occurence.count(new_node)) { //TODO: maybe we should actually keep checking for ends here
                 //add node
-                if (DEBUG)
-                  cout << "adding " << new_node << endl;
-                push_node(end_node.cursor, r + 1, properties[n], -1, e);
+                push_node(end_node.cursor, r + 1, properties[id], -1, e);
               } else {
                 int existing_id = node_occurence.find(new_node)->id;
                 //int existing_prop = properties[existing_id];
@@ -183,16 +193,16 @@ void Parser::process() {
       break;
     case RETURN:
       {
-        int properties_node = properties[head.id];
-        ends[properties_node].insert(head.id);
+        int properties_node = properties[id];
+        ends[properties_node].insert(id);
         
         set<int> par = parents[properties_node];
+        cout << "p: " << properties_node << " par: " << parents[properties_node].size() << endl;
         for (int p : par) {
           auto new_node = NodeIndex{cur, nodes[p].rule + 1};
 	  
           if (!node_occurence.count(new_node)) {// || ruleset.types[new_node.rule] == RETURN) {
-            if (DEBUG) cout << "adding " << new_node << endl;
-            push_node(cur, nodes[p].rule + 1, properties[n], -1, head.id);
+            push_node(cur, nodes[p].rule + 1, properties[p], -1, id);
           } else {
             int existing_id = node_occurence.find(new_node)->id;
             //int existing_prop = properties[existing_id];
@@ -211,110 +221,111 @@ void Parser::process() {
 int Parser::post_process() {
   //// post processing
   vector<int> active_nodes;
-  if (end_node) {
-    set<int> seen_nodes;
-    queue<int> q;
-    q.push(end_node);
-    //int n = end_node;
-
-    while (!q.empty()) {
-      int n = q.front();
-      if (!seen_nodes.count(n)) {
-        active_nodes.push_back(n);
-        seen_nodes.insert(n);
-	  
-        for (int c : crumbs[n])
-          q.push(c);
-      }
-      q.pop();
-    }
-
-    reverse(active_nodes.begin(), active_nodes.end());
-
-
-    //run through active nodes, filtering and ending
-    set<string> filter_set;
-    filter_set.insert("ws");
-
-    vector<string> names;
-    vector<int> starts;
-    vector<int> ends;
-    vector<set<int>> children;
-
-    map<int, int> node_map;
-    int n_parse_nodes(0);
-
-    bool last_was_match(false); int last_n(0); //little hacky, matches dont return
-    for (int n : active_nodes) {
-      NodeIndex &node = nodes[n];
-      cout << "active: " << node << endl;
-
-      if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) {
-        node_map[n] = n_parse_nodes++;
-        names.push_back(ruleset.names[node.rule]);
-        starts.push_back(node.cursor);
-        ends.push_back(-1);
-        children.push_back(set<int>());
-	  
-        //make link from parent to child
-        for (int p : parents[properties[n]])
-          if (node_map.count(properties[p]))
-            children[node_map[properties[p]]].insert(node_map[n]);
-      }
-
-	
-      //set end for the matching rule of return
-      if (ruleset.types[node.rule] == RETURN)
-        ends[node_map[properties[n]]] = node.cursor;
-	  //for (int p : parents[properties[n]])
-	  //if (node_map.count(p))
-	  //ends[node_map[p]] = node.cursor;
-
-      //set ends for MATCH nodes
-      if (last_was_match) {
-        ends[node_map[last_n]] = node.cursor;
-        last_was_match = false;
-      }
-      if (ruleset.types[node.rule] == MATCH) {
-        last_was_match = true;
-        last_n = n;
-      }
-
-	
-      /*
-        cout << "node: " << n << " cursor: " << nodes[n].cursor << " "  << ruleset.types[nodes[n].rule] << endl;
-        //int p = properties[n];
-        if (parents[n].size()) {
-        cout << "parents: ";
-        for (auto p : parents[n])
-	    cout << p << " ";
-        cout << endl;
-        }
-      */
-    }
-
-    ofstream dotfile("parsetree.dot");
-
-    dotfile << "digraph parsetree {" << endl;      
-    for (int i(0); i < n_parse_nodes; ++i) {
-      if (ends[i] >= 0) {//not all active nodes are valid; if they are unended they never matched completely
-        cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
-        dotfile << "node_" << i << " [label=\"" << names[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]\"];" << endl;
-        for (int c : children[i]) {
-          if (ends[c] != -1)
-            dotfile << "node_" << i << " -> node_" << c << ";" << endl;
-        }
-      }
-    }
-    dotfile << "}" << endl;
-    cout << "SUCCESS" << endl;
-    return 0;
-  } else {
+  if (!end_node) {
     cout << "FAILED" << endl;
     cout << "at char: " << furthest << endl;
     cout << "got to: " << buffer.substr(max(0, furthest - 5), 10) << endl;
     return 1;
   }
+
+  
+  set<int> seen_nodes;
+  queue<int> q;
+  q.push(end_node);
+  //int n = end_node;
+
+  while (!q.empty()) {
+    int n = q.front();
+    if (!seen_nodes.count(n)) {
+      active_nodes.push_back(n);
+      seen_nodes.insert(n);
+	  
+      for (int c : crumbs[n])
+        q.push(c);
+    }
+    q.pop();
+  }
+
+  reverse(active_nodes.begin(), active_nodes.end());
+
+
+  //run through active nodes, filtering and ending
+  set<string> filter_set;
+  filter_set.insert("ws");
+
+  vector<string> names;
+  vector<int> starts;
+  vector<int> ends;
+  vector<set<int>> children;
+
+  map<int, int> node_map;
+  int n_parse_nodes(0);
+
+  bool last_was_match(false); int last_n(0); //little hacky, matches dont return
+  for (int n : active_nodes) {
+    NodeIndex &node = nodes[n];
+    cout << "active: " << node << endl;
+
+    if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) {
+      node_map[n] = n_parse_nodes++;
+      names.push_back(ruleset.names[node.rule]);
+      starts.push_back(node.cursor);
+      ends.push_back(-1);
+      children.push_back(set<int>());
+	  
+      //make link from parent to child
+      for (int p : parents[properties[n]])
+        if (node_map.count(properties[p]))
+          children[node_map[properties[p]]].insert(node_map[n]);
+    }
+
+	
+    //set end for the matching rule of return
+    if (ruleset.types[node.rule] == RETURN)
+      ends[node_map[properties[n]]] = node.cursor;
+    //for (int p : parents[properties[n]])
+    //if (node_map.count(p))
+    //ends[node_map[p]] = node.cursor;
+
+    //set ends for MATCH nodes
+    if (last_was_match) {
+      ends[node_map[last_n]] = node.cursor;
+      last_was_match = false;
+    }
+    if (ruleset.types[node.rule] == MATCH) {
+      last_was_match = true;
+      last_n = n;
+    }
+
+	
+    /*
+      cout << "node: " << n << " cursor: " << nodes[n].cursor << " "  << ruleset.types[nodes[n].rule] << endl;
+      //int p = properties[n];
+      if (parents[n].size()) {
+      cout << "parents: ";
+      for (auto p : parents[n])
+      cout << p << " ";
+      cout << endl;
+      }
+    */
+  }
+
+  ofstream dotfile("parsetree.dot");
+
+  dotfile << "digraph parsetree {" << endl;      
+  for (int i(0); i < n_parse_nodes; ++i) {
+    if (ends[i] >= 0) {//not all active nodes are valid; if they are unended they never matched completely
+      cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
+      dotfile << "node_" << i << " [label=\"" << names[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]\"];" << endl;
+      for (int c : children[i]) {
+        if (ends[c] != -1)
+          dotfile << "node_" << i << " -> node_" << c << ";" << endl;
+      }
+    }
+  }
+  dotfile << "}" << endl;
+  cout << "SUCCESS" << endl;
+  return 0;
 }
 
 int Parser::parse(string input_file) {
