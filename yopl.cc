@@ -262,7 +262,7 @@ int Parser::post_process() {
   bool last_was_match(false); int last_n(0); //little hacky, matches dont return
   for (int n : active_nodes) {
     NodeIndex &node = nodes[n];
-    cout << "active: " << node << endl;
+    //cout << "active: " << node << endl;
 
     if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) {
       node_map[n] = n_parse_nodes++;
@@ -307,28 +307,50 @@ int Parser::post_process() {
       }
     */
   }
+  return 0;
+}
 
-  ofstream dotfile("parsetree.dot");
-
+void Parser::dot_graph_debug(string filename) {
+  ofstream dotfile(filename);
+  
   dotfile << "digraph parsetree {" << endl;      
-  for (int i(0); i < n_parse_nodes; ++i) {
-    if (ends[i] >= 0) {//not all active nodes are valid; if they are unended they never matched completely
-      cout << names[i] << " " << starts[i] << "-" << ends[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]" << endl;
-      dotfile << "node_" << i << " [label=\"" << names[i] << " [" << buffer.substr(starts[i],  ends[i] - starts[i]) << "]\"];" << endl;
-      for (int c : children[i]) {
-        if (ends[c] != -1)
-          dotfile << "node_" << i << " -> node_" << c << ";" << endl;
-      }
-    }
+
+  ostringstream oss_rank;
+  oss_rank << "{rank = same; ";
+  for (int i(0); i < buffer.size(); ++i) {
+    if (buffer[i] == '\n' || buffer[i] == ' ' || buffer[i] == '\\')
+      continue;
+    dotfile << "char" << i << " [label=\"" << buffer[i] << "\"]" << endl;
+    oss_rank << "char" << i << "; ";
+  }
+  oss_rank << "}";
+  dotfile << oss_rank.str() << endl;
+
+  for (int i(0); i < nodes.size(); ++i) {
+    dotfile << "node" << i << " [shape=\"box\", label=\"" << ruleset.names[nodes[i].rule] << " " << ruleset.types[nodes[i].rule] << " " << nodes[i] << "\"]" << endl;
+    dotfile << "node" << i << " -> char" << nodes[i].cursor << " [color=\"grey\"]" << endl;
+    for (auto c : crumbs[i])
+      dotfile << "node" << i << " -> node" << c << " [style=dashed, color=grey]" << endl;
+    
+    //if (properties[i] == i)
+      for (auto p : parents[properties[i]])
+        dotfile << "node" << i << " -> node" << p << " [color=\"black:invis:black\"]" << endl;
   }
   dotfile << "}" << endl;
-  cout << "SUCCESS" << endl;
-  return 0;
+}
+
+void Parser::dot_graph_final(string filename) {
+  ofstream dotfile(filename);
+    
+  dotfile << "digraph parsetree {" << endl;      
+
+  dotfile << "}" << endl;
 }
 
 int Parser::parse(string input_file) {
   load(input_file);
   process();
+  dot_graph_debug("debug.dot");
   return post_process();
 }
 

@@ -105,6 +105,10 @@ struct Parser {
   void process();
   
   int post_process();
+
+  void dot_graph_debug(std::string filename);
+  
+  void dot_graph_final(std::string filename);
 };
 
 #endif

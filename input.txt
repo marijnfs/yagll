@@ -1,3 +1,2 @@
-A=a+1
-b=4+a
-func f(a- as-)
+test bla name | name
+name "'test |''"

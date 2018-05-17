@@ -11,7 +11,8 @@ RuleSet::RuleSet(string filename) {
   enum Mode {
     BLANK = 0,
     READ = 1,
-    ESCAPE = 2
+    ESCAPESINGLE = 2,
+    ESCAPEDOUBLE = 3
   };
   
   string line;
@@ -54,7 +55,9 @@ RuleSet::RuleSet(string filename) {
         else if (c == ' ')
           ;
         else if (c == '\'')
-          mode = ESCAPE;
+          mode = ESCAPESINGLE;
+        else if (c == '\"')
+          mode = ESCAPEDOUBLE;
         else {
           item += c;
           mode = READ;
@@ -69,8 +72,17 @@ RuleSet::RuleSet(string filename) {
         } else
           item += c;
       }
-      else if (mode == ESCAPE) {
+      else if (mode == ESCAPESINGLE) {
         if (c == '\'') {
+          //add item to set
+          curitems.push_back(item);
+          item.clear();
+          mode = BLANK;
+        } else
+          item += c;
+      }
+      else if (mode == ESCAPEDOUBLE) {
+        if (c == '\"') {
           //add item to set
           curitems.push_back(item);
           item.clear();
