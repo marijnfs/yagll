@@ -152,7 +152,7 @@ void Parser::process() {
         vector<int> &args = ruleset.arguments[r]; //spawn rules are stored here
         
         for (int new_r : args) {
-          NodeIndex ni{cur, new_r, (int)nodes.size()};
+          NodeIndex ni{cur, new_r};
 
           //A node with same rule at this cursor can already be created by another rule (not rarely recursively, especially with right-recursive rules!)
           //We check if the node exists first
@@ -161,15 +161,15 @@ void Parser::process() {
              push_node(cur, new_r, -1, id, id);
           } else {
             //node already exists, get the node
-            int id = node_occurence.find(ni)->id;
+            int child_id = node_occurence.find(ni)->id;
             
-            parents[id].insert(id); //add current node as a parent as well
-            crumbs[id].insert(id); //we are the crumb now, also
+            parents[child_id].insert(id); //add current node as a parent as well
+            crumbs[child_id].insert(id); //we are the crumb now, also
             
             //if already has ends, spawn nodes with the next rule
             //this gets complicated as crumbs have to be set properly as well
             
-            set<int> ends_copy = ends[id];
+            set<int> ends_copy = ends[child_id];
             for (int e : ends_copy) {
               //we can spawn the next node
               auto end_node = nodes[e];
@@ -197,20 +197,17 @@ void Parser::process() {
         ends[properties_node].insert(id);
         
         set<int> par = parents[properties_node];
-        cout << "p: " << properties_node << " par: " << parents[properties_node].size() << endl;
+
         for (int p : par) {
           auto new_node = NodeIndex{cur, nodes[p].rule + 1};
 	  
-          if (!node_occurence.count(new_node)) {// || ruleset.types[new_node.rule] == RETURN) {
+          //if (!node_occurence.count(new_node)) {// || ruleset.types[new_node.rule] == RETURN) {
             push_node(cur, nodes[p].rule + 1, properties[p], -1, id);
-          } else {
-            int existing_id = node_occurence.find(new_node)->id;
-            //int existing_prop = properties[existing_id];
-            //int parent_prop = properties[p];
-	      
-            //parents[existing_prop].insert(parents[parent_prop].begin(), parents[parent_prop].end());
-            crumbs[existing_id].insert(head.id);
-          }
+            //} else {
+            //int existing_id = node_occurence.find(new_node)->id;
+            //cout << "exist, add to " << existing_id << " " << nodes[existing_id] << endl;
+            //crumbs[existing_id].insert(head.id);
+            // }
         }
       }
       break;
@@ -225,6 +222,7 @@ int Parser::post_process() {
     cout << "FAILED" << endl;
     cout << "at char: " << furthest << endl;
     cout << "got to: " << buffer.substr(max(0, furthest - 5), 10) << endl;
+    cout << "             ^" << endl;
     return 1;
   }
 

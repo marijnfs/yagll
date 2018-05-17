@@ -84,7 +84,7 @@ RuleSet::RuleSet(string filename) {
   
   
   //Add the rules
-  add_option("ROOT", vector<int>{4}); //TODO should not be hardcoded
+  add_option("ROOT", vector<int>{2}); //TODO should not be hardcoded
   add_end();
   
   typedef pair<int, string> so_pair;
