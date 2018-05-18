@@ -221,8 +221,13 @@ int Parser::post_process() {
   if (!end_node) {
     cout << "FAILED" << endl;
     cout << "at char: " << furthest << endl;
-    cout << "got to: " << buffer.substr(max(0, furthest - 5), 10) << endl;
-    cout << "             ^" << endl;
+    auto end_string = buffer.substr(max(0, furthest - 5), 10);
+    cout << "got to: " << endl << buffer.substr(max(0, furthest - 5), 10) << endl;
+    cout << "     ^" << endl;
+    for (auto n : nodes) {
+      if (n.cursor == furthest && ruleset.types[n.rule] == MATCH)
+        cout << "trying to match: " << ruleset.matcher[n.rule]->pattern() << endl;
+    }
     return 1;
   }
 
@@ -232,7 +237,7 @@ int Parser::post_process() {
   q.push(end_node);
   //int n = end_node;
 
-  while (!q.empty()) {
+  while (!q.empty()) { //follow crumbs from end to beginning
     int n = q.front();
     if (!seen_nodes.count(n)) {
       active_nodes.push_back(n);
@@ -246,10 +251,9 @@ int Parser::post_process() {
 
   reverse(active_nodes.begin(), active_nodes.end());
 
-
   //run through active nodes, filtering and ending
   set<string> filter_set;
-  filter_set.insert("ws");
+  filter_set.insert("ws"); //filter whitespace
 
   vector<string> names;
   vector<int> starts;
@@ -264,7 +268,7 @@ int Parser::post_process() {
     NodeIndex &node = nodes[n];
     //cout << "active: " << node << endl;
 
-    if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) {
+    if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) { //only take nodes with names
       node_map[n] = n_parse_nodes++;
       names.push_back(ruleset.names[node.rule]);
       starts.push_back(node.cursor);

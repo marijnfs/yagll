@@ -1,2 +1,2 @@
-test bla name | name
-name "'test |''"
+a = 4 + 1
+func asdf(a, b

@@ -10,4 +10,4 @@ name [[:alpha:]]+
 number [[:digit:]]+
 ws ' *'
 afunc 'func' ws name '\(' args '\)'
-args name | name '-' ws args
+args name | name ',' ws args

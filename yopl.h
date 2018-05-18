@@ -111,4 +111,15 @@ struct Parser {
   void dot_graph_final(std::string filename);
 };
 
+
+struct ParsedNode {
+  Parser *ptr = 0;
+  int n = -1;
+
+  int rule();
+  int cursor();
+  int end();
+  
+};
+
 #endif
