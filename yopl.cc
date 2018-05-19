@@ -215,20 +215,25 @@ void Parser::process() {
   }
 }
 
-int Parser::post_process() {
+unique_ptr<ParseGraph> Parser::post_process() {
+  ParseGraph *parse_graph_ptr = new ParseGraph();
+  ParseGraph &pg(*parse_graph_ptr);
+
   //// post processing
   vector<int> active_nodes;
   if (!end_node) {
     cout << "FAILED" << endl;
     cout << "at char: " << furthest << endl;
     auto end_string = buffer.substr(max(0, furthest - 5), 10);
-    cout << "got to: " << endl << buffer.substr(max(0, furthest - 5), 10) << endl;
+    replace( end_string.begin(), end_string.end(), '\n', ' ');
+    cout << "got to: " << endl << end_string << endl;
     cout << "     ^" << endl;
+    
     for (auto n : nodes) {
       if (n.cursor == furthest && ruleset.types[n.rule] == MATCH)
         cout << "trying to match: " << ruleset.matcher[n.rule]->pattern() << endl;
     }
-    return 1;
+    return unique_ptr<ParseGraph>(nullptr);
   }
 
   
@@ -237,7 +242,9 @@ int Parser::post_process() {
   q.push(end_node);
   //int n = end_node;
 
-  while (!q.empty()) { //follow crumbs from end to beginning
+  //follow crumbs from end to beginning
+  //figure out which nodes were actually part of the successful parse
+  while (!q.empty()) { 
     int n = q.front();
     if (!seen_nodes.count(n)) {
       active_nodes.push_back(n);
@@ -255,62 +262,53 @@ int Parser::post_process() {
   set<string> filter_set;
   filter_set.insert("ws"); //filter whitespace
 
-  vector<string> names;
-  vector<int> starts;
-  vector<int> ends;
   vector<set<int>> children;
 
   map<int, int> node_map;
+  map<int, int> last_with_parent; //map containing original node id for node who last had this parent, needed so siblings can determine ends of last sibling
+  auto &name_map = pg.name_map;
+  auto &reverse_name_map = pg.reverse_name_map;
+    
   int n_parse_nodes(0);
 
   bool last_was_match(false); int last_n(0); //little hacky, matches dont return
   for (int n : active_nodes) {
+    int new_node_id = n_parse_nodes++;
+    
     NodeIndex &node = nodes[n];
+    pg.nodes.push_back(ParsedNode{new_node_id});
+    ParsedNode &pn(last(pg.nodes));
     //cout << "active: " << node << endl;
 
-    if (ruleset.names[node.rule].size() && !filter_set.count(ruleset.names[node.rule])) { //only take nodes with names
-      node_map[n] = n_parse_nodes++;
-      names.push_back(ruleset.names[node.rule]);
-      starts.push_back(node.cursor);
-      ends.push_back(-1);
-      children.push_back(set<int>());
-	  
-      //make link from parent to child
-      for (int p : parents[properties[n]])
-        if (node_map.count(properties[p]))
-          children[node_map[properties[p]]].insert(node_map[n]);
-    }
+    node_map[n] = new_node_id; //node_map converts from old node id to new node id
 
-	
-    //set end for the matching rule of return
-    if (ruleset.types[node.rule] == RETURN)
-      ends[node_map[properties[n]]] = node.cursor;
-    //for (int p : parents[properties[n]])
-    //if (node_map.count(p))
-    //ends[node_map[p]] = node.cursor;
-
-    //set ends for MATCH nodes
-    if (last_was_match) {
-      ends[node_map[last_n]] = node.cursor;
-      last_was_match = false;
+    auto rule_name = ruleset.names[node.rule];
+    int name_id(-1);
+    if (rule_name.size()) {
+      if (!name_map.count(rule_name)) {
+        name_id = name_map.size();
+        name_map[rule_name] = name_id;
+        reverse_name_map[name_id] = rule_name;
+      } else
+        name_id = name_map[rule_name];
     }
-    if (ruleset.types[node.rule] == MATCH) {
-      last_was_match = true;
-      last_n = n;
-    }
-
-	
-    /*
-      cout << "node: " << n << " cursor: " << nodes[n].cursor << " "  << ruleset.types[nodes[n].rule] << endl;
-      //int p = properties[n];
-      if (parents[n].size()) {
-      cout << "parents: ";
-      for (auto p : parents[n])
-      cout << p << " ";
-      cout << endl;
-      }
-    */
+    
+    pg.starts.push_back(node.cursor);
+    pg.ends.push_back(-1);
+    
+    //make link from parent to child
+    for (auto p : parents[properties[node.id]]) {
+      if (!node_map.count(p)) // parent is not in node_map yet, so not active
+        continue;
+      int new_p = node_map[p]; //we assume parent is already encountered, since we move forward over active nodes
+      if (last_with_parent.count(new_p)) //someone had this parent, must be sibling, end him
+        pg.ends[last_with_parent[new_p]] = node.cursor;
+      last_with_parent[new_p] = new_node_id;
+      pg.nodes[new_p].children.insert(new_node_id);
+      pn.parents.insert(new_p);
+    } 
   }
+  
   return 0;
 }
 
@@ -355,6 +353,7 @@ int Parser::parse(string input_file) {
   load(input_file);
   process();
   dot_graph_debug("debug.dot");
-  return post_process();
+  auto parse_graph = post_process();
+  
 }
 

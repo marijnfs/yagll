@@ -1,2 +1,2 @@
 a = 4 + 1
-func asdf(a, b
+func(fa, 1

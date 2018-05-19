@@ -12,7 +12,7 @@
 #include <sstream>
 #include <fstream>
 #include <iostream>
-
+#include <memory>
 
 const bool DEBUG(true);
 
@@ -72,6 +72,9 @@ struct RuleSet {
 //Test a RE2 matcher on a string starting at pos 'pos'. return number of characters eaten, -1 for no match
 int match(RE2 &matcher, std::string &str, int pos = 0);
 
+struct ParseGraph;
+
+
 struct Parser {
   RuleSet ruleset;
 
@@ -104,7 +107,7 @@ struct Parser {
 
   void process();
   
-  int post_process();
+  std::unique_ptr<ParseGraph> post_process();
 
   void dot_graph_debug(std::string filename);
   
@@ -113,13 +116,26 @@ struct Parser {
 
 
 struct ParsedNode {
-  Parser *ptr = 0;
   int n = -1;
 
-  int rule();
-  int cursor();
-  int end();
-  
+  std::set<int> parents, children;
 };
+
+struct ParseGraph {
+  std::vector<ParsedNode> nodes;
+
+  std::vector<int> starts;
+  std::vector<int> ends;
+  std::vector<int> name_ids;
+  
+  std::map<std::string, int> name_map;
+  std::map<int, std::string> reverse_name_map;
+
+};
+
+template <typename T>
+inline T &last(std::vector<T> &v) {
+  return v[v.size() - 1];
+}
 
 #endif
