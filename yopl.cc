@@ -281,8 +281,6 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
   int n_parse_nodes(0);
 
-  bool last_was_match(false);
-  int last_n(0); // little hacky, matches dont return
   for (int n : active_nodes) {
     int new_node_id = n_parse_nodes++;
 
@@ -323,7 +321,7 @@ unique_ptr<ParseGraph> Parser::post_process() {
     }
   }
 
-  return 0;
+  return unique_ptr<ParseGraph>(parse_graph_ptr);
 }
 
 void Parser::dot_graph_debug(string filename) {
@@ -368,9 +366,9 @@ void Parser::dot_graph_final(string filename) {
   dotfile << "}" << endl;
 }
 
-int Parser::parse(string input_file) {
+unique_ptr<ParseGraph> Parser::parse(string input_file) {
   load(input_file);
   process();
   dot_graph_debug("debug.dot");
-  auto parse_graph = post_process();
+  return post_process();
 }
