@@ -97,9 +97,6 @@ void Parser::process() {
     NodeIndex head = heads.top(); // pop head of the queue
     heads.pop();
 
-    cout << "POP: " << head.cursor << " " << head.rule << " " << heads.size()
-         << endl;
-
     furthest = max(furthest, head.cursor);
 
     if (DEBUG)
@@ -120,13 +117,6 @@ void Parser::process() {
     int id = head.id;
     int cur = head.cursor;
     int r = head.rule;
-    cout << "prop: " << properties[id];
-    if (parents[properties[id]].size()) {
-      cout << " parent:";
-      for (auto p : parents[properties[id]])
-        cout << p << " ";
-    }
-    cout << endl;
 
     switch (ruleset.types[r]) {
     case END:

@@ -15,14 +15,15 @@ RuleSet::RuleSet(string filename) {
     ESCAPEDOUBLE = 3
   };
   
-  string line;
-  
+  string root_rule_name;
+
   map<string, vector<vector<string>>> rules;
-  
+
+  string line;
   while (getline(infile, line)) {
     cout << line << endl;
     istringstream iss(line);
-    
+
     string name;
     iss >> name;
     if (name.size() == 0)
@@ -41,6 +42,8 @@ RuleSet::RuleSet(string filename) {
         if (item.size())
           curitems.push_back(item);
         options.push_back(curitems);
+        if (!rules.size()) //this is the first rule, thus root rule
+          root_rule_name = name;
         rules[name] = options;
         break;
       }
@@ -96,14 +99,14 @@ RuleSet::RuleSet(string filename) {
   
   
   //Add the rules
-  add_option("ROOT", vector<int>{2}); //TODO should not be hardcoded
+  add_option("ROOT", vector<int>{-1}); //Spawn point will be updated after rules are made
   add_end();
   
   typedef pair<int, string> so_pair;
   multimap<int, string> search_option; //backsearching the option calls afterwards
   map<string, int> rule_pos;
   
-  for (auto r : rules) {
+  for (auto r : rules) { //go over rules, no particular order since std::map
     string name = r.first;
     vector<vector<string>> &options = r.second;
     
@@ -149,6 +152,9 @@ RuleSet::RuleSet(string filename) {
       }
     }
   }
+
+  // Lets set the root spawn correctly
+  arguments[0][0] = rule_pos[root_rule_name];
   
   // back reference option calls
   for (auto kv : search_option) {
@@ -188,7 +194,7 @@ RuleSet::RuleSet(string filename) {
 void RuleSet::add_ret() {
   names.push_back("");
   types.push_back(RETURN);
-  arguments.push_back(vector<int>(0,0));
+  arguments.push_back(vector<int>(0));
   matcher.push_back(0);
   returns.push_back(0);
 }
@@ -196,7 +202,7 @@ void RuleSet::add_ret() {
 void RuleSet::add_end() {
   names.push_back("");
   types.push_back(END);
-  arguments.push_back(vector<int>(0,0));
+  arguments.push_back(vector<int>(0));
   matcher.push_back(0);
   returns.push_back(0);
 }

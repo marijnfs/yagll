@@ -14,7 +14,7 @@
 #include <string>
 #include <vector>
 
-const bool DEBUG(true);
+const bool DEBUG(false);
 
 struct NodeIndex {
   int cursor = -1, rule = -1;
