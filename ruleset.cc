@@ -21,14 +21,12 @@ RuleSet::RuleSet(string filename) {
 
   string line;
   while (getline(infile, line)) {
-    cout << line << endl;
     istringstream iss(line);
 
     string name;
     iss >> name;
     if (name.size() == 0)
       continue;
-    cout << "name: " << name << endl;
     
     
     Mode mode(BLANK);
@@ -47,7 +45,7 @@ RuleSet::RuleSet(string filename) {
         rules[name] = options;
         break;
       }
-      cout << c;
+
       if (mode == BLANK) {
         if (c == '|') { //a new set
           //add current items to vector
@@ -93,8 +91,7 @@ RuleSet::RuleSet(string filename) {
         } else
           item += c;
       }
-    }      
-    cout << endl;      
+    }
   }
   
   
@@ -113,13 +110,10 @@ RuleSet::RuleSet(string filename) {
     int start = size();
     rule_pos[name] = start;
     
-    cout << name << " " << start << endl;
-    
     if (options.size() == 1) { //we dont need an option
       auto &expressions = options[0];
       for (auto &exp : expressions) {
         if (rules.count(exp)) { //refers to a rule
-          cout << size() << " " << exp << endl;
           search_option.insert(so_pair(size(), exp));
           add_option();
         } else { //a matcher
@@ -161,7 +155,6 @@ RuleSet::RuleSet(string filename) {
     int option_pos = kv.first;
     string call_name = kv.second;
     arguments[option_pos].push_back(rule_pos[call_name]);
-    cout << "adding " << option_pos << " " << call_name << " " << rule_pos[call_name] << endl;
   }
   
   //set names
@@ -178,16 +171,18 @@ RuleSet::RuleSet(string filename) {
   
   
   //print rules
-  for (int i(0); i < types.size(); ++i) {
-    cout << i << ": [" << types[i] << "] ";
-    cout << names[i] << " :";
-    if (types[i] == OPTION)
-      for (auto i : arguments[i])
-        cout << i << ",";
-    if (types[i] == MATCH)
-      cout << "'" << matcher[i]->pattern() << "'";
-    
-    cout << endl;
+  if (PRINT_RULES) {
+    for (int i(0); i < types.size(); ++i) {
+      cout << i << ": [" << types[i] << "] ";
+      cout << names[i] << " :";
+      if (types[i] == OPTION)
+        for (auto i : arguments[i])
+          cout << i << ",";
+      if (types[i] == MATCH)
+        cout << "'" << matcher[i]->pattern() << "'";
+      
+      cout << endl;
+    }
   }
 }
 

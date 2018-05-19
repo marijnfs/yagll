@@ -295,7 +295,9 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
     pg.starts.push_back(node.cursor);
     pg.ends.push_back(-1);
-
+    pg.name_ids.push_back(name_id);
+    pg.cleanup.push_back(false);
+    
     // make link from parent to child
     for (auto p : parents[properties[node.id]]) {
       if (!node_map.count(p)) // parent is not in node_map yet, so not active
@@ -310,7 +312,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
       pn.parents.insert(new_p);
     }
   }
-
+  
+  
   return unique_ptr<ParseGraph>(parse_graph_ptr);
 }
 

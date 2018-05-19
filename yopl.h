@@ -15,6 +15,7 @@
 #include <vector>
 
 const bool DEBUG(false);
+const bool PRINT_RULES(false);
 
 struct NodeIndex {
   int cursor = -1, rule = -1;
@@ -129,9 +130,14 @@ struct ParseGraph {
   std::vector<int> starts;
   std::vector<int> ends;
   std::vector<int> name_ids;
-
+  std::vector<bool> cleanup; //boolean indicating whether a node is used, relevant for compacting
+  
   std::map<std::string, int> name_map;
   std::map<int, std::string> reverse_name_map;
+
+  /// compact runs through nodes and removes the ones that are marked for cleanup
+  /// adjusts all relevant indices as required, also in parsed nodes
+  void compact(); 
 };
 
 template <typename T> inline T &last(std::vector<T> &v) {

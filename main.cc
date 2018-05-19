@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
   string input_file(argv[2]);
   
   Parser parser(gram_file);
-  parser.parse(input_file);
-
+  auto parse_result = parser.parse(input_file);
+  
   
 }
