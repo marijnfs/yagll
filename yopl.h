@@ -13,6 +13,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <functional>
 
 const bool DEBUG(false);
 const bool PRINT_RULES(false);
@@ -133,12 +134,16 @@ struct ParseGraph {
   std::vector<bool> cleanup; // boolean indicating whether a node is used,
                              // relevant for compacting
 
-  std::map<std::string, int> name_map;
-  std::map<int, std::string> reverse_name_map;
+  std::map<int, std::string> name_map;
+  std::map<std::string, int> rname_map;
 
+  std::string buffer;
+  
   /// compact runs through nodes and removes the ones that are marked for
   /// cleanup adjusts all relevant indices as required, also in parsed nodes
   void compact();
+
+  void print_dot(std::string filename);
 };
 
 template <typename T> inline T &last(std::vector<T> &v) {

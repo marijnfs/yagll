@@ -217,8 +217,11 @@ unique_ptr<ParseGraph> Parser::post_process() {
   ParseGraph *parse_graph_ptr = new ParseGraph();
   ParseGraph &pg(*parse_graph_ptr);
 
+  pg.buffer = buffer;
+
   //// post processing
   vector<int> active_nodes;
+  /// Deal with missed parse, give some indication why it failed
   if (!end_node) {
     cout << "FAILED" << endl;
     cout << "at char: " << furthest << endl;
@@ -236,14 +239,16 @@ unique_ptr<ParseGraph> Parser::post_process() {
   }
 
   set<int> seen_nodes;
-  queue<int> q;
+  priority_queue<int> q;
   q.push(end_node);
   // int n = end_node;
 
   // follow crumbs from end to beginning
   // figure out which nodes were actually part of the successful parse
   while (!q.empty()) {
-    int n = q.front();
+    int n = q.top();
+    q.pop();
+
     if (!seen_nodes.count(n)) {
       active_nodes.push_back(n);
       seen_nodes.insert(n);
@@ -251,7 +256,6 @@ unique_ptr<ParseGraph> Parser::post_process() {
       for (int c : crumbs[n])
         q.push(c);
     }
-    q.pop();
   }
 
   reverse(active_nodes.begin(), active_nodes.end());
@@ -266,8 +270,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
   map<int, int> last_with_parent; // map containing original node id for node
                                   // who last had this parent, needed so
                                   // siblings can determine ends of last sibling
+  auto &rname_map = pg.rname_map;
   auto &name_map = pg.name_map;
-  auto &reverse_name_map = pg.reverse_name_map;
 
   int n_parse_nodes(0);
 
@@ -285,12 +289,12 @@ unique_ptr<ParseGraph> Parser::post_process() {
     auto rule_name = ruleset.names[node.rule];
     int name_id(-1);
     if (rule_name.size()) {
-      if (!name_map.count(rule_name)) {
-        name_id = name_map.size();
-        name_map[rule_name] = name_id;
-        reverse_name_map[name_id] = rule_name;
+      if (!rname_map.count(rule_name)) {
+        name_id = rname_map.size();
+        rname_map[rule_name] = name_id;
+        name_map[name_id] = rule_name;
       } else
-        name_id = name_map[rule_name];
+        name_id = rname_map[rule_name];
     }
 
     pg.starts.push_back(node.cursor);
@@ -304,9 +308,15 @@ unique_ptr<ParseGraph> Parser::post_process() {
         continue;
       int new_p = node_map[p]; // we assume parent is already encountered, since
                                // we move forward over active nodes
-      if (last_with_parent.count(
-              new_p)) // someone had this parent, must be sibling, end him
-        pg.ends[last_with_parent[new_p]] = node.cursor;
+      if (last_with_parent.count(new_p)) {
+        if (pg.ends[last_with_parent[new_p]] != -1)
+          cout << name_map[pg.name_ids[last_with_parent[new_p]]]
+               << " already had end " << pg.ends[last_with_parent[new_p]]
+               << endl;
+        // someone had this parent, must be sibling, end him
+        pg.ends[last_with_parent[new_p]] =
+            max(node.cursor, pg.ends[last_with_parent[new_p]]);
+      }
       last_with_parent[new_p] = new_node_id;
       pg.nodes[new_p].children.insert(new_node_id);
       pn.parents.insert(new_p);
@@ -363,4 +373,19 @@ unique_ptr<ParseGraph> Parser::parse(string input_file) {
   process();
   dot_graph_debug("debug.dot");
   return post_process();
+}
+
+void ParseGraph::print_dot(string filename) {
+  ofstream dotfile(filename);
+
+  dotfile << "digraph parsetree {" << endl;
+  for (auto n(0); n < nodes.size(); ++n) {
+    string name = name_map.count(name_ids[n]) ? name_map[name_ids[n]] : "";
+    dotfile << "node" << n << " [label=\"" << name << " "
+            << buffer.substr(starts[n], ends[n] - starts[n]) << "\"]" << endl;
+    for (auto p : nodes[n].parents)
+      dotfile << "node" << n << " -> "
+              << "node" << p << endl;
+  }
+  dotfile << "}" << endl;
 }
