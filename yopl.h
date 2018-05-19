@@ -79,7 +79,7 @@ struct Parser {
 
   std::vector<NodeIndex> nodes; // all nodes are stored here
   std::vector<int> properties;  // properties index, pointing of node containing
-                               // shared info of nodes, such as:
+                                // shared info of nodes, such as:
   std::vector<std::set<int>>
       parents; // who is your parent? Can be multiple nodes that happen to spawn
                // this rule at this cursor
@@ -130,14 +130,15 @@ struct ParseGraph {
   std::vector<int> starts;
   std::vector<int> ends;
   std::vector<int> name_ids;
-  std::vector<bool> cleanup; //boolean indicating whether a node is used, relevant for compacting
-  
+  std::vector<bool> cleanup; // boolean indicating whether a node is used,
+                             // relevant for compacting
+
   std::map<std::string, int> name_map;
   std::map<int, std::string> reverse_name_map;
 
-  /// compact runs through nodes and removes the ones that are marked for cleanup
-  /// adjusts all relevant indices as required, also in parsed nodes
-  void compact(); 
+  /// compact runs through nodes and removes the ones that are marked for
+  /// cleanup adjusts all relevant indices as required, also in parsed nodes
+  void compact();
 };
 
 template <typename T> inline T &last(std::vector<T> &v) {
