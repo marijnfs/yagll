@@ -1,0 +1,10 @@
+S line '\n' | line '\n' S
+ws '[ ]*'
+line name ws rules
+rules statement | statement ws '\|' ws rules
+statement statement ws name | name
+name quote notquote quote | dquote notdquote dquote | '[[:alpha:]]+'
+quote "\'"
+notquote "[^\']+"
+dquote '\"'
+notdquote '[^\"]+'
