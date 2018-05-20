@@ -19,15 +19,6 @@ int main(int argc, char **argv) {
     return 0;
 
   cout << "nodes: " << parse_graph->size() << endl;
-  parse_graph->print_dot("parse.dot");
-
-  parse_graph->filter([](ParseGraph &pg, int n) {
-    if (pg.name_ids[n] == -1)
-      pg.cleanup[n] = true;
-    if (pg.name_map[pg.name_ids[n]] == "ws")
-      pg.cleanup[n] = true;
-  });
-  parse_graph->compact();
   parse_graph->print_dot("compact.dot");
 
   for (int n(0); n < parse_graph->nodes.size(); ++n) {

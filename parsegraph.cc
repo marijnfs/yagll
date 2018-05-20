@@ -1,23 +1,131 @@
 #include "parsegraph.h"
 
+#include <algorithm>
 #include <fstream>
+#include <stack>
+
+#include <iostream>
+
 using namespace std;
 
 void ParseGraph::print_dot(string filename) {
   ofstream dotfile(filename);
 
   dotfile << "digraph parsetree {" << endl;
-  for (auto n(0); n < nodes.size(); ++n) {
+  for (int n(0); n < nodes.size(); ++n) {
     string name = name_map.count(name_ids[n]) ? name_map[name_ids[n]] : "";
     string sub =
-        ends[n] >= 0 ? buffer.substr(starts[n], ends[n] - starts[n]) : "NEG";
-    dotfile << "node" << n << " [label=\"" << name << " \'" << sub
-            << "\' :" << starts[n] << "\"]" << endl;
+        nodes[n].children.size() == 0
+            ? string("'") + buffer.substr(starts[n], ends[n] - starts[n]) + "'"
+            : "";
+    replace(sub.begin(), sub.end(), '"', '#');
+    dotfile << "node" << n << " [label=\"" << name << " " << sub << " :"
+            << starts[n] << "\"]" << endl;
     for (auto p : nodes[n].parents)
       dotfile << "node" << n << " -> "
               << "node" << p << endl;
   }
   dotfile << "}" << endl;
+}
+
+int ParseGraph::root() {
+  for (int n(0); n < nodes.size(); ++n)
+    if (name(n) == "ROOT")
+      return n;
+  return -1;
+}
+
+std::vector<int> ParseGraph::get_connected(int root, std::string filter_name,
+                                           std::string connection) {
+  vector<int> result;
+  stack<int> s;
+  s.push(root);
+
+  set<int> visited;
+  while (s.size()) {
+    int n = s.top();
+    s.pop();
+
+    // prevent loops
+    if (visited.count(n))
+      continue;
+    visited.insert(n);
+
+    for (int c : nodes[n].children) {
+      // cout << c << " |" << name(c) << "|" << endl;
+      if (name(c) == filter_name)
+        result.push_back(c);
+      if (name(c) == connection)
+        s.push(c);
+    }
+  }
+
+  return result;
+}
+
+std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
+  vector<int> result;
+  stack<int> s;
+  s.push(root);
+
+  set<int> visited;
+  while (s.size()) {
+    int n = s.top();
+    s.pop();
+
+    // prevent loops
+    if (visited.count(n))
+      continue;
+    visited.insert(n);
+
+    for (int c : nodes[n].children) {
+      // cout << c << " |" << name(c) << "|" << endl;
+      if (name(c) == filter_name)
+        result.push_back(c);
+      else
+        s.push(c);
+    }
+  }
+
+  return result;
+}
+
+int ParseGraph::get_one(int root, std::string search_name) {
+  stack<int> s;
+  s.push(root);
+
+  set<int> visited;
+  while (s.size()) {
+    int n = s.top();
+    s.pop();
+
+    // prevent loops
+    if (visited.count(n))
+      continue;
+    visited.insert(n);
+
+    for (int c : nodes[n].children) {
+      // cout << c << " |" << name(c) << "|" << endl;
+      if (name(c) == search_name)
+        return c;
+      else
+        s.push(c);
+    }
+  }
+
+  return -1;
+}
+
+bool ParseGraph::has_name(int n) { return name_ids[n] != -1; }
+
+string ParseGraph::name(int n) {
+  if (!has_name(n))
+    return "";
+  return name_map[name_ids[n]];
+}
+
+string ParseGraph::substr(int n) {
+  return buffer.substr(starts[n], ends[n] - starts[n]);
 }
 
 void ParseGraph::filter(function<void(ParseGraph &, int)> callback) {

@@ -7,6 +7,7 @@
 #include <vector>
 
 enum RuleType { OPTION = 0, MATCH = 1, RETURN = 2, END = 3 };
+enum LoadType { LOAD_BASIC = 0, LOAD_YOPL = 1, LOAD_YOPLYOPL = 2 };
 
 std::ostream &operator<<(std::ostream &out, RuleType &t);
 
@@ -21,26 +22,29 @@ struct RuleSet {
   RuleSet();
 
   // parse a file with simple ruleset parser
-  RuleSet(std::string filename);
+  RuleSet(std::string filename, LoadType load_type = LOAD_YOPLYOPL);
+
+  void basic_load(std::string filename);
+  void yopl_load(std::string filename, LoadType load_type);
+  void load(std::string filename, LoadType load_type);
 
   // add return op
-  void add_ret();
+  int add_ret();
 
   // add end file op
-  void add_end();
+  int add_end();
 
   // add option
-  void add_option(std::string name,
-                  std::vector<int> spawn = std::vector<int>());
+  int add_option(std::string name, std::vector<int> spawn = std::vector<int>());
 
   // add anonymous option
-  void add_option(std::vector<int> spawn = std::vector<int>());
+  int add_option(std::vector<int> spawn = std::vector<int>());
 
   // add RE2 string match
-  void add_match(std::string name, std::string matchstr);
+  int add_match(std::string name, std::string matchstr);
 
   // add anonymous RE2 string match
-  void add_match(std::string matchstr);
+  int add_match(std::string matchstr);
 
   int size();
 };

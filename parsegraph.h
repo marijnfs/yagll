@@ -33,7 +33,24 @@ struct ParseGraph {
 
   void filter(std::function<void(ParseGraph &, int)> callback);
 
+  // get nodes with certain name, connected to given root node, allow
+  // connections through third param
+  std::vector<int> get_connected(int root, std::string filter_name,
+                                 std::string connection);
+
+  std::vector<int> get_connected(int root, std::string filter_name);
+
+  int get_one(int root, std::string name);
+
   void print_dot(std::string filename);
+
+  bool has_name(int n);
+
+  std::string substr(int n);
+
+  std::string name(int n);
+
+  int root();
 
   int size() { return nodes.size(); }
 };

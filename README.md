@@ -13,6 +13,9 @@ Progress
 
 Building
 =======
+YOPL depends on RE2 from Google, a fast regular expression matcher. It can be installed throught the package manager on most distributions, e.g. on debian it can be installed using `sudo apt-get install libre2-dev`
+
+Then build using the makefile:
 `> make`
 
     

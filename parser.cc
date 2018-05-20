@@ -59,7 +59,8 @@ int match(RE2 &matcher, string &str, int pos) {
   return -1;
 }
 
-Parser::Parser(string gram_file) : ruleset(gram_file) {}
+Parser::Parser(string gram_file, LoadType load_type)
+    : ruleset(gram_file, load_type) {}
 
 void Parser::push_node(int cursor, int rule, int prop_node, int parent,
                        int crumb) { // does not check whether it exists
@@ -220,8 +221,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
   pg.buffer = buffer;
 
-  /// Deal with missed parse, give some indication why it failed
-  if (!end_node) {
+  if (!end_node) { /// Deal with missed parse, give some indication why it
+                   /// failed
     cout << "FAILED" << endl;
     int line_start(0), line_end(0);
     int line(0);
@@ -280,12 +281,6 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
   reverse(active_nodes.begin(), active_nodes.end());
 
-  // run through active nodes, filtering and ending
-  set<string> filter_set;
-  filter_set.insert("ws"); // filter whitespace
-
-  vector<set<int>> children;
-
   map<int, int> node_map;
   int n_nodes(0);
   for (int n : active_nodes)
@@ -311,8 +306,9 @@ unique_ptr<ParseGraph> Parser::post_process() {
     // get name id from rule with name
     int name_id(-1);
     auto rule_name = ruleset.names[node.rule];
-    if (!rule_name.size() && ruleset.matcher[node.rule])
-      rule_name = ruleset.matcher[node.rule]->pattern();
+    // if (!rule_name.size() && ruleset.matcher[node.rule]) //give matcher
+    // pattern as name
+    //  rule_name = ruleset.matcher[node.rule]->pattern();
     if (rule_name.size()) {
       if (!rname_map.count(rule_name)) {
         name_id = rname_map.size();
@@ -421,5 +417,17 @@ unique_ptr<ParseGraph> Parser::parse(string input_file) {
   load(input_file);
   process();
   dot_graph_debug("debug.dot");
-  return post_process();
+  auto pg = post_process();
+  if (!pg)
+    return pg;
+
+  // basic whitespace and no-name filter
+  pg->filter([](ParseGraph &pg, int n) {
+    if (pg.name_ids[n] == -1)
+      pg.cleanup[n] = true;
+    if (pg.name_map[pg.name_ids[n]] == "ws")
+      pg.cleanup[n] = true;
+  });
+  pg->compact();
+  return pg;
 }

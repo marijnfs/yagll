@@ -52,7 +52,7 @@ struct Parser {
   int end_node = 0;
   int furthest = 0; // aux var, to see how far we got in case of fail
 
-  Parser(std::string gram_file);
+  Parser(std::string gram_file, LoadType load_type = LOAD_YOPL);
 
   // add a node
   // does not check whether it exists
