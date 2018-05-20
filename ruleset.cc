@@ -37,6 +37,7 @@ RuleSet::RuleSet(string filename) {
         if (item.size())
           curitems.push_back(item);
         options.push_back(curitems);
+        curitems.clear();
         if (!rules.size()) // this is the first rule, thus root rule
           root_rule_name = name;
         rules[name] = options;
@@ -105,7 +106,8 @@ RuleSet::RuleSet(string filename) {
     int start = size();
     rule_pos[name] = start;
 
-    if (options.size() == 1) { // we dont need an option
+    if (options.size() == 1 &&
+        options[0].size() == 1) { // we dont need an option
       auto &expressions = options[0];
       for (auto &exp : expressions) {
         if (rules.count(exp)) { // refers to a rule
@@ -185,7 +187,7 @@ void RuleSet::add_ret() {
   types.push_back(RETURN);
   arguments.push_back(vector<int>(0));
   matcher.push_back(0);
-  returns.push_back(0);
+  returns.push_back(-1);
 }
 
 void RuleSet::add_end() {
@@ -193,7 +195,7 @@ void RuleSet::add_end() {
   types.push_back(END);
   arguments.push_back(vector<int>(0));
   matcher.push_back(0);
-  returns.push_back(0);
+  returns.push_back(-1);
 }
 
 void RuleSet::add_option(string name, vector<int> spawn) {
@@ -201,7 +203,7 @@ void RuleSet::add_option(string name, vector<int> spawn) {
   types.push_back(OPTION);
   arguments.push_back(spawn); // call S
   matcher.push_back(0);
-  returns.push_back(0);
+  returns.push_back(-1);
 }
 
 void RuleSet::add_option(vector<int> spawn) { add_option("", spawn); }
@@ -211,7 +213,7 @@ void RuleSet::add_match(string name, string matchstr) {
   types.push_back(MATCH);
   arguments.push_back(vector<int>(0, 0));
   matcher.push_back(new RE2(matchstr));
-  returns.push_back(0);
+  returns.push_back(-1);
 }
 
 void RuleSet::add_match(string matchstr) { add_match("", matchstr); }

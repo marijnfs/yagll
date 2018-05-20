@@ -34,6 +34,8 @@ struct ParseGraph {
   void filter(std::function<void(ParseGraph &, int)> callback);
 
   void print_dot(std::string filename);
+
+  int size() { return nodes.size(); }
 };
 
 #endif

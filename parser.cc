@@ -223,11 +223,30 @@ unique_ptr<ParseGraph> Parser::post_process() {
   /// Deal with missed parse, give some indication why it failed
   if (!end_node) {
     cout << "FAILED" << endl;
-    cout << "at char: " << furthest << endl;
-    auto end_string = buffer.substr(max(0, furthest - 5), 10);
-    replace(end_string.begin(), end_string.end(), '\n', ' ');
+    int line_start(0), line_end(0);
+    int line(0);
+    int cur(0);
+    for (int i(0); i <= buffer.size(); ++i) {
+      line_end = i;
+      if (i <= furthest) {
+        if (buffer[i] == '\n') {
+          line_start = i;
+          ++line;
+          cur = 0;
+        } else
+          ++cur;
+      } else {
+        if (buffer[i] == '\n')
+          break;
+      }
+    }
+
+    cout << "at line: " << line << ":" << cur << endl;
+
+    auto end_string = buffer.substr(line_start, line_end - line_start);
+    replace(end_string.begin(), end_string.end(), '\t', ' ');
     cout << "got to: " << endl << end_string << endl;
-    cout << "     ^" << endl;
+    cout << string(cur, ' ') << "^" << endl;
 
     for (auto n : nodes) {
       if (n.cursor == furthest && ruleset.types[n.rule] == MATCH)
