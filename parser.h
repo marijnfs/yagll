@@ -1,5 +1,5 @@
-#ifndef __YOPL_H__
-#define __YOPL_H__
+#ifndef __PARSER_H__
+#define __PARSER_H__
 
 #include <algorithm>
 #include <fstream>
@@ -9,14 +9,13 @@
 #include <map>
 #include <memory>
 #include <queue>
-#include <re2/re2.h>
 #include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
-const bool DEBUG(false);
-const bool PRINT_RULES(true);
+#include "ruleset.h"
+#include "parsegraph.h"
 
 struct NodeIndex {
   int cursor = -1, rule = -1;
@@ -28,50 +27,6 @@ struct NodeIndex {
 
 std::ostream &operator<<(std::ostream &out, NodeIndex &ni);
 
-enum RuleType { OPTION = 0, MATCH = 1, RETURN = 2, END = 3 };
-
-std::ostream &operator<<(std::ostream &out, RuleType &t);
-
-struct RuleSet {
-  std::vector<std::string> names;
-  std::vector<RuleType> types;
-  std::vector<std::vector<int>> arguments;
-  std::vector<RE2 *> matcher;
-  std::vector<int> returns; // points to return (or end) point of each rule,
-                            // needed to place crumbs
-
-  RuleSet();
-
-  // parse a file with simple ruleset parser
-  RuleSet(std::string filename);
-
-  // add return op
-  void add_ret();
-
-  // add end file op
-  void add_end();
-
-  // add option
-  void add_option(std::string name,
-                  std::vector<int> spawn = std::vector<int>());
-
-  // add anonymous option
-  void add_option(std::vector<int> spawn = std::vector<int>());
-
-  // add RE2 string match
-  void add_match(std::string name, std::string matchstr);
-
-  // add anonymous RE2 string match
-  void add_match(std::string matchstr);
-
-  int size();
-};
-
-// Test a RE2 matcher on a string starting at pos 'pos'. return number of
-// characters eaten, -1 for no match
-int match(RE2 &matcher, std::string &str, int pos = 0);
-
-struct ParseGraph;
 
 struct Parser {
   RuleSet ruleset;
@@ -119,34 +74,7 @@ struct Parser {
   void dot_graph_final(std::string filename);
 };
 
-struct ParsedNode {
-  int n = -1;
 
-  std::set<int> parents, children;
-};
-
-struct ParseGraph {
-  std::vector<ParsedNode> nodes;
-
-  std::vector<int> starts;
-  std::vector<int> ends;
-  std::vector<int> name_ids;
-  std::vector<bool> cleanup; // boolean indicating whether a node is used,
-                             // relevant for compacting
-
-  std::map<int, std::string> name_map;
-  std::map<std::string, int> rname_map;
-
-  std::string buffer;
-
-  /// compact runs through nodes and removes the ones that are marked for
-  /// cleanup adjusts all relevant indices as required, also in parsed nodes
-  void compact();
-
-  void filter(std::function<void(ParseGraph &, int)> callback);
-
-  void print_dot(std::string filename);
-};
 
 template <typename T> inline T &last(std::vector<T> &v) {
   return v[v.size() - 1];

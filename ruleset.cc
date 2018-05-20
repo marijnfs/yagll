@@ -1,4 +1,8 @@
-#include "yopl.h"
+#include "ruleset.h"
+#include "const.h"
+
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
