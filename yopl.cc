@@ -219,8 +219,6 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
   pg.buffer = buffer;
 
-  //// post processing
-  vector<int> active_nodes;
   /// Deal with missed parse, give some indication why it failed
   if (!end_node) {
     cout << "FAILED" << endl;
@@ -238,6 +236,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
     return unique_ptr<ParseGraph>(nullptr);
   }
 
+  //// post processing
+  vector<int> active_nodes;
   set<int> seen_nodes;
   priority_queue<int> q;
   q.push(end_node);
@@ -267,27 +267,32 @@ unique_ptr<ParseGraph> Parser::post_process() {
   vector<set<int>> children;
 
   map<int, int> node_map;
-  map<int, int> last_with_parent; // map containing original node id for node
-                                  // who last had this parent, needed so
-                                  // siblings can determine ends of last sibling
+  int n_nodes(0);
+  for (int n : active_nodes)
+    node_map[n] = n_nodes++;
+
+  // map<int, int> last_with_parent; // map containing original node id for node
+  // who last had this parent, needed so
+  // siblings can determine ends of last sibling
   auto &rname_map = pg.rname_map;
   auto &name_map = pg.name_map;
 
-  int n_parse_nodes(0);
-
   for (int n : active_nodes) {
-    int new_node_id = n_parse_nodes++;
-
     NodeIndex &node = nodes[n];
+    int new_node_id = node_map[n];
+
     pg.nodes.push_back(ParsedNode{new_node_id});
+    pg.starts.push_back(node.cursor);
+    pg.ends.push_back(-1);
+    pg.cleanup.push_back(false);
+
     ParsedNode &pn(last(pg.nodes));
-    // cout << "active: " << node << endl;
 
-    node_map[n] =
-        new_node_id; // node_map converts from old node id to new node id
-
-    auto rule_name = ruleset.names[node.rule];
+    // get name id from rule with name
     int name_id(-1);
+    auto rule_name = ruleset.names[node.rule];
+    if (!rule_name.size() && ruleset.matcher[node.rule])
+      rule_name = ruleset.matcher[node.rule]->pattern();
     if (rule_name.size()) {
       if (!rname_map.count(rule_name)) {
         name_id = rname_map.size();
@@ -297,31 +302,55 @@ unique_ptr<ParseGraph> Parser::post_process() {
         name_id = rname_map[rule_name];
     }
 
-    pg.starts.push_back(node.cursor);
-    pg.ends.push_back(-1);
     pg.name_ids.push_back(name_id);
-    pg.cleanup.push_back(false);
+  }
+
+  for (int n : active_nodes) {
+    int new_node_id = node_map[n];
+    ParsedNode &pn(pg.nodes[new_node_id]);
 
     // make link from parent to child
-    for (auto p : parents[properties[node.id]]) {
+    for (auto p : parents[properties[n]]) {
       if (!node_map.count(p)) // parent is not in node_map yet, so not active
         continue;
       int new_p = node_map[p]; // we assume parent is already encountered, since
-                               // we move forward over active nodes
-      if (last_with_parent.count(new_p)) {
-        if (pg.ends[last_with_parent[new_p]] != -1)
-          cout << name_map[pg.name_ids[last_with_parent[new_p]]]
-               << " already had end " << pg.ends[last_with_parent[new_p]]
-               << endl;
-        // someone had this parent, must be sibling, end him
-        pg.ends[last_with_parent[new_p]] =
-            max(node.cursor, pg.ends[last_with_parent[new_p]]);
-      }
-      last_with_parent[new_p] = new_node_id;
+
       pg.nodes[new_p].children.insert(new_node_id);
-      pn.parents.insert(new_p);
+      pg.nodes[new_node_id].parents.insert(new_p);
+
+      /*
+        if (last_with_parent.count(new_p)) {
+        if (pg.ends[last_with_parent[new_p]] != -1)
+        cout << name_map[pg.name_ids[last_with_parent[new_p]]]
+        << " already had end " << pg.ends[last_with_parent[new_p]]
+        << endl;
+        // someone had this parent, must be sibling, end him
+          pg.ends[last_with_parent[new_p]] =
+          max(node.cursor, pg.ends[last_with_parent[new_p]]);
+              }
+
+              last_with_parent[new_p] = new_node_id;
+      */
     }
   }
+
+  for (auto n : pg.nodes)
+    for (auto p : n.parents)
+      pg.ends[p] = max(pg.ends[p], pg.starts[n.n]);
+
+  // we have to end the leaf node.
+  // We run through them in sequence, and in theory by construction they should
+  // be consecutive, so we can end them with the start of the next leaf
+  int last_n = -1;
+  for (auto n : pg.nodes)
+    if (!n.children.size()) {
+      if (last_n != -1)
+        pg.ends[last_n] = pg.starts[n.n];
+      last_n = n.n;
+    }
+
+  // cout << "leaf: " << pg.name_map[pg.name_ids[n.n]] << " " << pg.starts[n.n]
+  // << endl;
 
   return unique_ptr<ParseGraph>(parse_graph_ptr);
 }
@@ -381,11 +410,68 @@ void ParseGraph::print_dot(string filename) {
   dotfile << "digraph parsetree {" << endl;
   for (auto n(0); n < nodes.size(); ++n) {
     string name = name_map.count(name_ids[n]) ? name_map[name_ids[n]] : "";
-    dotfile << "node" << n << " [label=\"" << name << " "
-            << buffer.substr(starts[n], ends[n] - starts[n]) << "\"]" << endl;
+    string sub =
+        ends[n] >= 0 ? buffer.substr(starts[n], ends[n] - starts[n]) : "NEG";
+    dotfile << "node" << n << " [label=\"" << name << " \'" << sub
+            << "\' :" << starts[n] << "\"]" << endl;
     for (auto p : nodes[n].parents)
       dotfile << "node" << n << " -> "
               << "node" << p << endl;
   }
   dotfile << "}" << endl;
+}
+
+void ParseGraph::filter(function<void(ParseGraph &, int)> callback) {
+  for (int i(0); i < nodes.size(); ++i)
+    callback(*this, i);
+}
+
+void ParseGraph::compact() {
+  // First create a node map, -1 for removing nodes
+  int N(0);
+  vector<int> node_map(nodes.size());
+  for (int n(0); n < nodes.size(); ++n)
+    if (cleanup[n])
+      node_map[n] = -1;
+    else
+      node_map[n] = N++;
+
+  // Make sure all removed nodes pass over their children and parent links
+  for (int n(0); n < nodes.size(); ++n)
+    if (cleanup[n]) {
+      for (auto p : nodes[n].parents)
+        nodes[p].children.insert(nodes[n].children.begin(),
+                                 nodes[n].children.end());
+      for (auto c : nodes[n].children)
+        nodes[c].parents.insert(nodes[n].parents.begin(),
+                                nodes[n].parents.end());
+    }
+
+  // Map over all indices, also for parents and children in all nodes
+  for (int n(0); n < nodes.size(); ++n) {
+    if (!cleanup[n]) {
+      set<int> new_parents, new_children;
+      for (auto p : nodes[n].parents)
+        if (!cleanup[p])
+          new_parents.insert(node_map[p]);
+      for (auto c : nodes[n].children)
+        if (!cleanup[c])
+          new_children.insert(node_map[c]);
+      nodes[n].parents = new_parents;
+      nodes[n].children = new_children;
+
+      nodes[node_map[n]] = nodes[n];
+      starts[node_map[n]] = starts[n];
+      ends[node_map[n]] = ends[n];
+      name_ids[node_map[n]] = name_ids[n];
+    }
+  }
+
+  // Resize everything
+  nodes.resize(N);
+  starts.resize(N);
+  ends.resize(N);
+  name_ids.resize(N);
+  cleanup.resize(N);
+  fill(cleanup.begin(), cleanup.end(), false);
 }

@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <iterator>
 #include <map>
@@ -13,10 +14,9 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <functional>
 
 const bool DEBUG(false);
-const bool PRINT_RULES(false);
+const bool PRINT_RULES(true);
 
 struct NodeIndex {
   int cursor = -1, rule = -1;
@@ -138,10 +138,12 @@ struct ParseGraph {
   std::map<std::string, int> rname_map;
 
   std::string buffer;
-  
+
   /// compact runs through nodes and removes the ones that are marked for
   /// cleanup adjusts all relevant indices as required, also in parsed nodes
   void compact();
+
+  void filter(std::function<void(ParseGraph &, int)> callback);
 
   void print_dot(std::string filename);
 };
