@@ -1,11 +1,11 @@
 #ifndef __PARSE_GRAPH_H__
 #define __PARSE_GRAPH_H__
 
+#include <functional>
 #include <map>
 #include <set>
-#include <vector>
 #include <string>
-#include <functional>
+#include <vector>
 
 struct ParsedNode {
   int n = -1;
@@ -36,6 +36,4 @@ struct ParseGraph {
   void print_dot(std::string filename);
 };
 
-
 #endif
-

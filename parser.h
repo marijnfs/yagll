@@ -14,8 +14,8 @@
 #include <string>
 #include <vector>
 
-#include "ruleset.h"
 #include "parsegraph.h"
+#include "ruleset.h"
 
 struct NodeIndex {
   int cursor = -1, rule = -1;
@@ -26,7 +26,6 @@ struct NodeIndex {
 };
 
 std::ostream &operator<<(std::ostream &out, NodeIndex &ni);
-
 
 struct Parser {
   RuleSet ruleset;
@@ -73,8 +72,6 @@ struct Parser {
 
   void dot_graph_final(std::string filename);
 };
-
-
 
 template <typename T> inline T &last(std::vector<T> &v) {
   return v[v.size() - 1];

@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "parser.h"
 #include "const.h"
+#include "parser.h"
 
 using namespace std;
 
@@ -404,4 +404,3 @@ unique_ptr<ParseGraph> Parser::parse(string input_file) {
   dot_graph_debug("debug.dot");
   return post_process();
 }
-

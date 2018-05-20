@@ -2,9 +2,9 @@
 #define __RULESET_H__
 
 #include <iostream>
+#include <re2/re2.h>
 #include <string>
 #include <vector>
-#include <re2/re2.h>
 
 enum RuleType { OPTION = 0, MATCH = 1, RETURN = 2, END = 3 };
 
@@ -48,6 +48,5 @@ struct RuleSet {
 // Test a RE2 matcher on a string starting at pos 'pos'. return number of
 // characters eaten, -1 for no match
 int match(RE2 &matcher, std::string &str, int pos = 0);
-
 
 #endif
