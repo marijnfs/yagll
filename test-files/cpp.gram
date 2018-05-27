@@ -1,0 +1,13 @@
+S entry '\n' | S entry '\n'
+entry include | using | empty | function
+include '#include ' include_name
+include_name '"' name '"' | '<' name '>'
+name '[.[:alpha:]]+'
+empty '[ ]*'
+using 'using namespace ' name ';'
+function type ' ' name '\(' args '\) ' block
+type 'int' | 'float' | 'char'
+args var | args ', ' var
+var type ' ' ptr name
+block '{' '[^{}]+' '}'
+ptr '' | '\*' | '\*\*'

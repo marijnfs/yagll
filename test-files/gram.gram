@@ -10,4 +10,4 @@ quote "\'"
 notquote "[^\']*"
 dquote '\"'
 notdquote '[^\"]*'
-name '[[:alpha:]]+'
+name '[_[:alpha:]]+'
