@@ -1,4 +1,4 @@
-S entry '\n' S | ''
+S entry '\n' | S entry '\n'
 entry line | afunc
 line exp | stat
 stat name ws '=' ws exp

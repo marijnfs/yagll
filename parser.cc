@@ -303,10 +303,10 @@ unique_ptr<ParseGraph> Parser::post_process() {
   seen_nodes.clear();
   std::priority_queue<int, std::vector<int>, std::greater<int> > q2;
   q2.push(0);
-  cout << returned[0] << endl;
+  
   while (!q2.empty()) {
     int n = q2.top();
-    cout << "node: " << n << endl;
+    //cout << "node: " << n << endl;
     q2.pop();
     
     if (!seen_nodes.count(n)) {
@@ -322,7 +322,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
   }
 
   sort(active_nodes.begin(), active_nodes.end());
-  for (auto a : active_nodes) {
+  /*
+    for (auto a : active_nodes) {
     cout << a << " c:" << nodes[a].cursor << " r:" << nodes[a].rule << " " << returned[a] << " ch:";
     for (auto c : children[a])
       cout << c << " ";
@@ -330,7 +331,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
   }
   
   cout << "n active:" << active_nodes.size() << endl;
-  
+  */
+
   //reverse(active_nodes.begin(), active_nodes.end());
 
   map<int, int> node_map;

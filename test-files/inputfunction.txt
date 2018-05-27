@@ -2,3 +2,39 @@ a = 4 + 1 + b
 func asdf(fa, c)
 a = 4 + 1 - b
 func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
+a = 4 + 1 + b
+func asdf(fa, c)
+a = 4 + 1 - b
+func asdf(fa, c)
