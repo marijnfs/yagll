@@ -26,6 +26,8 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   if (!pg)
     throw "failed to open file";
 
+  pg->print_dot("test.dot");
+  
   int root = pg->root();
   cout << "root: " << root << endl;
   auto lines = pg->get_connected(root, "line", "S");
@@ -35,6 +37,11 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   for (int n : lines) {
     int rn = pg->get_one(n, "rulename");
     string rulename = pg->substr(rn);
+    if (rule_option_map.count(rulename)) {
+      cerr << "double entry for rule: " << rulename << endl;
+      throw "";
+    }
+      
     cout << "rule name: " << rulename << endl;
     int pos = add_option(rulename, vector<int>()); // fill rules in later
     rule_option_map[rulename] = pos;
@@ -285,7 +292,7 @@ int RuleSet::add_ret() {
   int pos = size();
   names.push_back("");
   types.push_back(RETURN);
-  arguments.push_back(vector<int>(0));
+  arguments.push_back(vector<int>());
   matcher.push_back(0);
   returns.push_back(-1);
   return pos;
@@ -295,7 +302,7 @@ int RuleSet::add_end() {
   int pos = size();
   names.push_back("");
   types.push_back(END);
-  arguments.push_back(vector<int>(0));
+  arguments.push_back(vector<int>());
   matcher.push_back(0);
   returns.push_back(-1);
   return pos;
@@ -317,7 +324,7 @@ int RuleSet::add_match(string name, string matchstr) {
   int pos = size();
   names.push_back(name);
   types.push_back(MATCH);
-  arguments.push_back(vector<int>(0, 0));
+  arguments.push_back(vector<int>());
   matcher.push_back(new RE2(matchstr));
   returns.push_back(-1);
   return pos;

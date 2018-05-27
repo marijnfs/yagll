@@ -60,7 +60,9 @@ int match(RE2 &matcher, string &str, int pos) {
 }
 
 Parser::Parser(string gram_file, LoadType load_type)
-    : ruleset(gram_file, load_type) {}
+    : ruleset(gram_file, load_type) {
+  cout << "creating parser for gram: " << gram_file << " load type: " << load_type << endl;
+}
 
 void Parser::push_node(int cursor, int rule, int prop_node, int parent,
                        int crumb) { // does not check whether it exists
@@ -73,7 +75,8 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent,
   parents.push_back(parent == -1 ? set<int>() : set<int>{parent});
   crumbs.push_back(crumb == -1 ? set<int>() : set<int>{crumb});
   ends.push_back(set<int>());
-
+  returned.push_back(false);
+  
   heads.push(node);
   if (DEBUG)
     cout << "adding: c" << cursor << " r" << rule << " i" << node.id << " p"
@@ -94,8 +97,8 @@ void Parser::process() {
   push_node(0, 0, 0); // cursor, rule, prop node
 
   // Start Parsing
-  end_node = 0; // index to the end node, only gets set by the END rule
-  while (heads.size() && end_node == 0) {
+  end_node = -1; // index to the end node, only gets set by the END rule
+  while (heads.size()) {
     NodeIndex head = heads.top(); // pop head of the queue
     heads.pop();
 
@@ -122,7 +125,6 @@ void Parser::process() {
 
     switch (ruleset.types[r]) {
     case END:
-      cout << "END " << cur << " " << buffer.size() << endl;
       if (cur == buffer.size()) {
         end_node = id;
         continue;
@@ -195,12 +197,14 @@ void Parser::process() {
     case RETURN: {
       int properties_node = properties[id];
       ends[properties_node].insert(id);
-
+            
       set<int> par = parents[properties_node];
 
       for (int p : par) {
-        auto new_node = NodeIndex{cur, nodes[p].rule + 1};
+        returned[p] = true;
 
+        auto new_node = NodeIndex{cur, nodes[p].rule + 1};
+        
         // if (!node_occurence.count(new_node)) {// ||
         // ruleset.types[new_node.rule] == RETURN) {
         push_node(cur, nodes[p].rule + 1, properties[p], -1, id);
@@ -215,21 +219,14 @@ void Parser::process() {
   }
 }
 
-unique_ptr<ParseGraph> Parser::post_process() {
-  ParseGraph *parse_graph_ptr = new ParseGraph();
-  ParseGraph &pg(*parse_graph_ptr);
-
-  pg.buffer = buffer;
-
-  if (!end_node) { /// Deal with missed parse, give some indication why it
-                   /// failed
+void Parser::fail_message() {
     cout << "FAILED" << endl;
     int line_start(0), line_end(0);
     int line(0);
     int cur(0);
     for (int i(0); i <= buffer.size(); ++i) {
       line_end = i;
-      if (i <= furthest) {
+      if (i < furthest) {
         if (buffer[i] == '\n') {
           line_start = i;
           ++line;
@@ -254,6 +251,17 @@ unique_ptr<ParseGraph> Parser::post_process() {
         cout << "trying to match: " << ruleset.matcher[n.rule]->pattern()
              << endl;
     }
+}
+
+unique_ptr<ParseGraph> Parser::post_process() {
+  ParseGraph *parse_graph_ptr = new ParseGraph();
+  ParseGraph &pg(*parse_graph_ptr);
+
+  pg.buffer = buffer;
+
+  if (end_node < 0) { /// Deal with missed parse, give some indication why it
+                   /// failed
+    fail_message();
     return unique_ptr<ParseGraph>(nullptr);
   }
 
@@ -264,22 +272,66 @@ unique_ptr<ParseGraph> Parser::post_process() {
   q.push(end_node);
   // int n = end_node;
 
+  // Pass one: follow the crumbs
   // follow crumbs from end to beginning
   // figure out which nodes were actually part of the successful parse
+  vector<bool> active(nodes.size());
+  cout << "nodes.size: " << nodes.size() << endl;
+
   while (!q.empty()) {
     int n = q.top();
     q.pop();
 
     if (!seen_nodes.count(n)) {
-      active_nodes.push_back(n);
+      //active_nodes.push_back(n);
+      active[n] = true;
       seen_nodes.insert(n);
-
+      //active_nodes.push_back(n); ///to remove
       for (int c : crumbs[n])
         q.push(c);
     }
   }
+  
+  //Pass two, follow children
 
-  reverse(active_nodes.begin(), active_nodes.end());
+  //Make children links
+  vector<set<int>> children(nodes.size());
+  for (int n(0); n < nodes.size(); ++n)
+    for (int p : parents[properties[n]])
+      children[p].insert(n);
+  
+  seen_nodes.clear();
+  std::priority_queue<int, std::vector<int>, std::greater<int> > q2;
+  q2.push(0);
+  cout << returned[0] << endl;
+  while (!q2.empty()) {
+    int n = q2.top();
+    cout << "node: " << n << endl;
+    q2.pop();
+    
+    if (!seen_nodes.count(n)) {
+      seen_nodes.insert(n);
+
+      if (active[n] && (!children[n].size() || returned[n])) {
+        active_nodes.push_back(n);
+        
+        for (int c : children[n])
+          q2.push(c);
+      }
+    }
+  }
+
+  sort(active_nodes.begin(), active_nodes.end());
+  for (auto a : active_nodes) {
+    cout << a << " c:" << nodes[a].cursor << " r:" << nodes[a].rule << " " << returned[a] << " ch:";
+    for (auto c : children[a])
+      cout << c << " ";
+    cout << endl;
+  }
+  
+  cout << "n active:" << active_nodes.size() << endl;
+  
+  //reverse(active_nodes.begin(), active_nodes.end());
 
   map<int, int> node_map;
   int n_nodes(0);
@@ -320,33 +372,19 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
     pg.name_ids.push_back(name_id);
   }
-
+  
   for (int n : active_nodes) {
     int new_node_id = node_map[n];
     ParsedNode &pn(pg.nodes[new_node_id]);
-
+    
     // make link from parent to child
     for (auto p : parents[properties[n]]) {
       if (!node_map.count(p)) // parent is not in node_map yet, so not active
         continue;
-      int new_p = node_map[p]; // we assume parent is already encountered, since
+      int new_p = node_map[p];
 
       pg.nodes[new_p].children.insert(new_node_id);
       pg.nodes[new_node_id].parents.insert(new_p);
-
-      /*
-        if (last_with_parent.count(new_p)) {
-        if (pg.ends[last_with_parent[new_p]] != -1)
-        cout << name_map[pg.name_ids[last_with_parent[new_p]]]
-        << " already had end " << pg.ends[last_with_parent[new_p]]
-        << endl;
-        // someone had this parent, must be sibling, end him
-          pg.ends[last_with_parent[new_p]] =
-          max(node.cursor, pg.ends[last_with_parent[new_p]]);
-              }
-
-              last_with_parent[new_p] = new_node_id;
-      */
     }
   }
 
@@ -417,10 +455,13 @@ unique_ptr<ParseGraph> Parser::parse(string input_file) {
   load(input_file);
   process();
   dot_graph_debug("debug.dot");
+
   auto pg = post_process();
   if (!pg)
     return pg;
 
+  pg->print_dot("post-process-debug.dot");
+  
   // basic whitespace and no-name filter
   pg->filter([](ParseGraph &pg, int n) {
     if (pg.name_ids[n] == -1)

@@ -6,8 +6,8 @@ exp binop | number | name
 binop plus | minus
 plus exp ws '\+' ws exp
 minus exp ws '-' ws exp
-name [[:alpha:]]+
-number [[:digit:]]+
+name '[[:alpha:]]+'
+number '[[:digit:]]+'
 ws ' *'
 afunc 'func' ws name '\(' args '\)'
 args name | name ',' ws args

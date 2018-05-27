@@ -7,7 +7,7 @@ rule name | matchname
 rulename name
 matchname quote notquote quote | dquote notdquote dquote
 quote "\'"
-notquote "[^\']+"
+notquote "[^\']*"
 dquote '\"'
-notdquote '[^\"]+'
+notdquote '[^\"]*'
 name '[[:alpha:]]+'

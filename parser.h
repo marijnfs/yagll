@@ -43,7 +43,8 @@ struct Parser {
   std::vector<std::set<int>> crumbs; // crumbs, for de-parsing
   std::set<NodeIndex>
       node_occurence; // occurence set, checking if a node already exists
-
+  std::vector<bool> returned; //vector keeping track which option nodes were returned on, needed for post-processing
+  
   std::priority_queue<NodeIndex> heads; // active part, a queue with sorted
                                         // nodes
 
@@ -52,7 +53,7 @@ struct Parser {
   int end_node = 0;
   int furthest = 0; // aux var, to see how far we got in case of fail
 
-  Parser(std::string gram_file, LoadType load_type = LOAD_YOPL);
+  Parser(std::string gram_file, LoadType load_type = LOAD_YOPLYOPL);
 
   // add a node
   // does not check whether it exists
@@ -71,6 +72,8 @@ struct Parser {
   void dot_graph_debug(std::string filename);
 
   void dot_graph_final(std::string filename);
+
+  void fail_message();
 };
 
 template <typename T> inline T &last(std::vector<T> &v) {
