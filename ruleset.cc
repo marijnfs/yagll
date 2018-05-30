@@ -16,10 +16,12 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   add_option("ROOT", vector<int>{2});
   add_end();
 
-  string parser_file("test-files/gram.gram");
+  
+  
   LoadType grammar_load = LOAD_BASIC;
   if (load_type == LOAD_YOPLYOPL)
     grammar_load = LOAD_YOPL;
+  string parser_file(grammar_load == LOAD_BASIC ? "test-files/gram.gram" : "test-files/gram2.gram");
   Parser parser(parser_file, grammar_load);
 
   auto pg = parser.parse(filename);
@@ -47,6 +49,18 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
     rule_option_map[rulename] = pos;
     add_ret();
   }
+  
+  auto get_matchstr = [&pg](int n)->string {
+    int qn = pg->get_one(n, "notquote");
+    if (qn < 0)
+      qn = pg->get_one(n, "notdquote");
+    if (qn < 0)
+      qn = pg->get_one(n, "str");
+    if (qn < 0)
+      throw StringException("get_matchstr used but not found");
+    cout << "match substr: " << pg->substr(qn) << endl;
+    return pg->substr(qn);
+  };
 
   for (int l : lines) {
     int rn = pg->get_one(l, "rulename");
@@ -60,20 +74,37 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
 
         // figure out what kind of rule it is, spawn or matching
         // then add it and point rule_pos to it
-        int n = pg->get_one(r, "name");
-        if (n >= 0) { // rule is an option spawn
-          string spawn_name = pg->substr(n);
-          if (!rule_option_map.count(spawn_name)) {
-            cerr << "couldn't find option: " << spawn_name << endl;
-            throw "";
+        int n = pg->get_one(r, "keyname");
+        if (n >= 0) { //keyname has been found
+          string key = pg->substr(pg->get_one(n, "key"));
+          int namen = pg->get_one(n, "name");
+          if (namen >= 0) {
+            string spawn_name = pg->substr(namen);
+            if (!rule_option_map.count(spawn_name)) {
+              cerr << "couldn't find option: " << spawn_name << endl;
+              throw "";
+            }
+            cout << "adding key option: " << key << " " << spawn_name << endl;
+            rule_pos = add_option(key, vector<int>{rule_option_map[spawn_name]});
+          } else { //must be key-match name
+            string match_str = get_matchstr(n);
+            cout << "adding key match: " << key << " " << match_str << endl;
+            rule_pos = add_match(key, match_str);
           }
-          rule_pos = add_option(vector<int>{rule_option_map[spawn_name]});
-        } else { // must be match name, either notquote or notdquote
-          n = pg->get_one(r, "notquote");
-          if (n < 0)
-            n = pg->get_one(r, "notdquote");
-          string match_str = pg->substr(n);
-          rule_pos = add_match(match_str);
+        } else { //not a keyname
+          cout << "substr: " << pg->substr(r) << "|" << endl;
+          n = pg->get_one(r, "name");
+          if (n >= 0) {
+            string spawn_name = pg->substr(n);
+            if (!rule_option_map.count(spawn_name)) {
+              cerr << "couldn't find option: " << spawn_name << endl;
+              throw "";
+            }
+            rule_pos = add_option(vector<int>{rule_option_map[spawn_name]});
+          } else { // must be match name, either notquote or notdquote
+            string match_str = get_matchstr(r);
+            rule_pos = add_match(match_str);
+          }
         }
 
         if (first) { // add the first rule to the main option arguments
@@ -115,8 +146,9 @@ void RuleSet::load(string filename, LoadType load_type) {
 }
 
 void RuleSet::basic_load(string filename) {
+  cout << "basic load: " << filename << endl;
   ifstream infile(filename.c_str());
-
+  
   enum Mode { BLANK = 0, READ = 1, ESCAPESINGLE = 2, ESCAPEDOUBLE = 3 };
 
   string root_rule_name;

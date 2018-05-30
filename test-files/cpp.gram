@@ -1,13 +1,20 @@
 S entry '\n' | S entry '\n'
-entry include | using | empty | function
+entry include | using | ws | function
 include '#include ' include_name
 include_name '"' name '"' | '<' name '>'
 name '[.[:alpha:]]+'
-empty '[ ]*'
+ws '[ \t]*'
 using 'using namespace ' name ';'
 function type ' ' name '\(' args '\) ' block
 type 'int' | 'float' | 'char'
 args var | args ', ' var
 var type ' ' ptr name
-block '{' '[^{}]+' '}'
+block '{' s statements '}'
+statements ws statement ';\n' | statements ws statement ';\n'
 ptr '' | '\*' | '\*\*'
+statement initvar | exp
+initvar var '(' number ')'
+exp binop
+number '[[:digit:]]'
+binop name ws '<<' ws name
+s '\s'

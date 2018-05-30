@@ -1,4 +1,5 @@
 #include "parsegraph.h"
+#include "const.h"
 
 #include <algorithm>
 #include <fstream>
@@ -91,6 +92,8 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
 }
 
 int ParseGraph::get_one(int root, std::string search_name) {
+  if (root < 0)
+    throw StringException("get_one called on neg root");
   stack<int> s;
   s.push(root);
 

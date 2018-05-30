@@ -3,7 +3,9 @@ ws '[ ]+'
 line rulename ws options
 options option | options ws '\|' ws option
 option option ws rule | rule
-rule name | matchname
+rule name | matchname | keyname
+keyname key ':' name | key ':' matchname
+key name
 rulename name
 matchname quote notquote quote | dquote notdquote dquote
 quote "\'"

@@ -61,7 +61,7 @@ int match(RE2 &matcher, string &str, int pos) {
 
 Parser::Parser(string gram_file, LoadType load_type)
     : ruleset(gram_file, load_type) {
-  cout << "creating parser for gram: " << gram_file << " load type: " << load_type << endl;
+  cout << "created parser for gram: " << gram_file << " load type: " << load_type << endl;
 }
 
 void Parser::push_node(int cursor, int rule, int prop_node, int parent,
@@ -454,6 +454,7 @@ void Parser::dot_graph_final(string filename) {
 }
 
 unique_ptr<ParseGraph> Parser::parse(string input_file) {
+  cout << "parsing " << input_file << endl;
   load(input_file);
   process();
   dot_graph_debug("debug.dot");
