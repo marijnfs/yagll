@@ -3,6 +3,8 @@
 
 #include <algorithm>
 #include <fstream>
+
+#include <queue>
 #include <stack>
 
 #include <iostream>
@@ -66,12 +68,12 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name,
 
 std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
   vector<int> result;
-  stack<int> s;
+  queue<int> s;
   s.push(root);
 
   set<int> visited;
   while (s.size()) {
-    int n = s.top();
+    int n = s.front();
     s.pop();
 
     // prevent loops
@@ -94,12 +96,12 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
 int ParseGraph::get_one(int root, std::string search_name) {
   if (root < 0)
     throw StringException("get_one called on neg root");
-  stack<int> s;
+  queue<int> s;
   s.push(root);
 
   set<int> visited;
   while (s.size()) {
-    int n = s.top();
+    int n = s.front();
     s.pop();
 
     // prevent loops
@@ -184,4 +186,64 @@ void ParseGraph::compact() {
   name_ids.resize(N);
   cleanup.resize(N);
   fill(cleanup.begin(), cleanup.end(), false);
+}
+
+// Visit breadth-first search
+void ParseGraph::visit_bfs(Callback cb) {
+  vector<bool> visited(size());
+  
+  queue<int> q;
+  q.push(0); //start at 0
+  
+  while (q.size()) {
+    int n = q.front();
+    q.pop();
+
+    if (visited[n])
+      continue;
+    visited[n] = true;
+
+    cb(*this, n);
+
+    for (int c : nodes[n].children)
+      q.push(c);
+    
+  }
+}
+
+// Visit depth-first search
+void ParseGraph::visit_dfs(Callback cb) {
+  vector<bool> visited(size());
+  
+  queue<int> q;
+  q.push(0); //start at 0
+  
+  while (q.size()) {
+    int n = q.front();
+    q.pop();
+
+    if (visited[n])
+      continue;
+    visited[n] = true;
+
+    cb(*this, n);
+
+    for (int c : nodes[n].children)
+      q.push(c);
+    
+  }
+}
+
+// Visit bottom up, starting from leafs
+// assuring when a node is visited, all its leafs have already visited
+void ParseGraph::visit_bottom_up(Callback cb) {
+  vector<int> ordered_n;
+  ordered_n.reserve(nodes.size());
+  visit_bfs([&ordered_n](ParseGraph &pg, int n) {
+      ordered_n.push_back(n);
+    });
+  reverse(ordered_n.begin(), ordered_n.end());
+  
+  for (int n : ordered_n)
+    cb(*this, n);
 }

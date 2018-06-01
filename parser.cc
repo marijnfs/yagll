@@ -286,6 +286,7 @@ unique_ptr<ParseGraph> Parser::post_process() {
       //active_nodes.push_back(n);
       active[n] = true;
       seen_nodes.insert(n);
+
       //active_nodes.push_back(n); ///to remove
       for (int c : crumbs[n])
         q.push(c);
@@ -293,6 +294,7 @@ unique_ptr<ParseGraph> Parser::post_process() {
   }
   
   //Pass two, follow children
+  //Needed, since the crumbs might still contain parts of failed parse tries
 
   //Make children links
   vector<set<int>> children(nodes.size());
@@ -304,24 +306,46 @@ unique_ptr<ParseGraph> Parser::post_process() {
   std::priority_queue<int, std::vector<int>, std::greater<int> > q2;
   q2.push(0);
   
+  vector<bool> active_pass2(size());
+  
   while (!q2.empty()) {
     int n = q2.top();
     //cout << "node: " << n << endl;
     q2.pop();
     
-    if (!seen_nodes.count(n)) {
-      seen_nodes.insert(n);
-
-      if (active[n] && (!children[n].size() || returned[n])) {
-        active_nodes.push_back(n);
-        
-        for (int c : children[n])
-          q2.push(c);
-      }
+    if (seen_nodes.count(n))
+      continue;
+    seen_nodes.insert(n);
+    
+    if (active[n] && (!children[n].size() || returned[n])) { //nodes with children (options) need to have returned, this filters out the wrong paths
+      active_pass2[n] = true;
+      
+      for (int c : children[n])
+        q2.push(c);
     }
   }
+  
+  // Pass three
+  // Same as first but only to make sure whe know where every node ends
+  
+  vector<int> ends(size());
+  q.push(end_node);
 
-  sort(active_nodes.begin(), active_nodes.end());
+  
+  while (q.size()) {
+    int n = q.top();
+    q.pop();
+    if (!active_pass2[n])
+      continue;
+    active_nodes.push_back(n);
+
+    int c = nodes[n].cursor;
+    for (int crumb : crumbs[n]) {
+      ends[crumb] = c;
+      q.push(crumb);
+    }
+  }
+  
   /*
     for (auto a : active_nodes) {
     cout << a << " c:" << nodes[a].cursor << " r:" << nodes[a].rule << " " << returned[a] << " ch:";
@@ -392,11 +416,12 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
   for (auto n : pg.nodes)
     for (auto p : n.parents)
-      pg.ends[p] = max(pg.ends[p], pg.starts[n.n]);
+      pg.ends[p] = max(pg.ends[p], pg.starts[n.n]); //not ideal
 
   // we have to end the leaf node.
   // We run through them in sequence, and in theory by construction they should
   // be consecutive, so we can end them with the start of the next leaf
+  // Possible error: In ambiguous parse cases both cases might be represented, this screws things up
   int last_n = -1;
   for (auto n : pg.nodes)
     if (!n.children.size()) {
@@ -417,7 +442,7 @@ void Parser::dot_graph_debug(string filename) {
   dotfile << "digraph parsetree {" << endl;
 
   ostringstream oss_rank;
-  oss_rank << "{rank = same; ";
+  /*oss_rank << "{rank = same; ";
   for (int i(0); i < buffer.size(); ++i) {
     if (buffer[i] == '\n' || buffer[i] == ' ' || buffer[i] == '\\')
       continue;
@@ -425,17 +450,17 @@ void Parser::dot_graph_debug(string filename) {
     oss_rank << "char" << i << "; ";
   }
   oss_rank << "}";
-  dotfile << oss_rank.str() << endl;
+  dotfile << oss_rank.str() << endl;*/
 
   for (int i(0); i < nodes.size(); ++i) {
     dotfile << "node" << i << " [shape=\"box\", label=\""
             << ruleset.names[nodes[i].rule] << " "
             << ruleset.types[nodes[i].rule] << " " << nodes[i] << "\"]" << endl;
-    dotfile << "node" << i << " -> char" << nodes[i].cursor
-            << " [color=\"grey\"]" << endl;
-    for (auto c : crumbs[i])
-      dotfile << "node" << i << " -> node" << c << " [style=dashed, color=grey]"
-              << endl;
+    //dotfile << "node" << i << " -> char" << nodes[i].cursor
+    //<< " [color=\"grey\"]" << endl;
+    //for (auto c : crumbs[i])
+      //dotfile << "node" << i << " -> node" << c << " [style=dashed, color=grey]"
+        //      << endl;
 
     // if (properties[i] == i)
     for (auto p : parents[properties[i]])
@@ -458,7 +483,7 @@ unique_ptr<ParseGraph> Parser::parse(string input_file) {
   load(input_file);
   process();
   dot_graph_debug("debug.dot");
-
+  
   auto pg = post_process();
   if (!pg)
     return pg;

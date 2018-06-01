@@ -15,8 +15,6 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   // base rules
   add_option("ROOT", vector<int>{2});
   add_end();
-
-  
   
   LoadType grammar_load = LOAD_BASIC;
   if (load_type == LOAD_YOPLYOPL)

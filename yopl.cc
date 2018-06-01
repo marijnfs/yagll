@@ -32,4 +32,31 @@ int main(int argc, char **argv) {
            << " " << parse_graph->starts[n] << endl;
     }
   }
+
+  cout << "BFS:" << endl;
+  parse_graph->visit_bfs([](ParseGraph &pg, int n){
+      cout << pg.name(n) << " - " << pg.substr(n) << endl;
+    });
+  cout << endl;
+
+  cout << "DFS:" << endl;
+  parse_graph->visit_dfs([](ParseGraph &pg, int n){
+      cout << pg.name(n) << " - " << pg.substr(n) << endl;
+    });
+  cout << endl;
+
+
+  cout << "LEAF:" << endl;
+  vector<int> bla(parse_graph->size());
+  parse_graph->visit_bottom_up([&bla](ParseGraph &pg, int n){
+      cout << "{" << pg.name(n) << " : " << pg.substr(n) << endl;
+      bla[n] = 1;
+      for (int c : pg.nodes[n].children) {
+        cout << "}" << pg.name(c) << " : " << pg.substr(c) << endl;
+        if (bla[c] != 1)
+          throw "";
+      }
+    });
+
+  
 }

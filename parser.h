@@ -74,6 +74,8 @@ struct Parser {
   void dot_graph_final(std::string filename);
 
   void fail_message();
+
+  int size() { return nodes.size(); }
 };
 
 template <typename T> inline T &last(std::vector<T> &v) {

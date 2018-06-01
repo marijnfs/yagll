@@ -52,6 +52,18 @@ struct ParseGraph {
 
   int root();
 
+  typedef std::function<void(ParseGraph &pg, int n)> Callback;
+
+  // Visit breadth-first search
+  void visit_bfs(Callback cb);
+
+  // Visit depth-first search
+  void visit_dfs(Callback cb);
+  
+  // Visit bottom up, starting from leafs
+  // assuring when a node is visited, all its leafs have already visited
+  void visit_bottom_up(Callback cb);
+
   int size() { return nodes.size(); }
 };
 
