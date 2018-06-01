@@ -40,6 +40,8 @@ int ParseGraph::root() {
 
 std::vector<int> ParseGraph::get_connected(int root, std::string filter_name,
                                            std::string connection) {
+  if (root < 0)
+    throw StringException("can't get connected nodes, provided root is negative");
   vector<int> result;
   stack<int> s;
   s.push(root);

@@ -38,7 +38,7 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
     int rn = pg->get_one(n, "rulename");
     string rulename = pg->substr(rn);
     if (rule_option_map.count(rulename)) {
-      cerr << "double entry for rule: " << rulename << endl;
+      cerr << "double entry for rule: " << rulename << " node: " << n << " cur: " << pg->starts[n] << endl;
       throw "";
     }
       

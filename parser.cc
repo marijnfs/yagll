@@ -310,16 +310,15 @@ unique_ptr<ParseGraph> Parser::post_process() {
   
   while (!q2.empty()) {
     int n = q2.top();
-    //cout << "node: " << n << endl;
     q2.pop();
     
     if (seen_nodes.count(n))
       continue;
     seen_nodes.insert(n);
     
+
     if (active[n] && (!children[n].size() || returned[n])) { //nodes with children (options) need to have returned, this filters out the wrong paths
       active_pass2[n] = true;
-      
       for (int c : children[n])
         q2.push(c);
     }
@@ -330,14 +329,17 @@ unique_ptr<ParseGraph> Parser::post_process() {
   
   vector<int> ends(size());
   q.push(end_node);
-
   
   while (q.size()) {
     int n = q.top();
+    // cout << "q: " << n << endl;
     q.pop();
-    if (!active_pass2[n])
+    if (!active[n])  //reusing active vector to prevent looping
       continue;
-    active_nodes.push_back(n);
+    active[n] = false; 
+
+    if (active_pass2[n])
+      active_nodes.push_back(n);
 
     int c = nodes[n].cursor;
     for (int crumb : crumbs[n]) {
@@ -345,7 +347,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
       q.push(crumb);
     }
   }
-  
+  reverse(active_nodes.begin(), active_nodes.end());
+
   /*
     for (auto a : active_nodes) {
     cout << a << " c:" << nodes[a].cursor << " r:" << nodes[a].rule << " " << returned[a] << " ch:";
@@ -376,7 +379,7 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
     pg.nodes.push_back(ParsedNode{new_node_id});
     pg.starts.push_back(node.cursor);
-    pg.ends.push_back(-1);
+    pg.ends.push_back(ends[n]);
     pg.cleanup.push_back(false);
 
     ParsedNode &pn(last(pg.nodes));
@@ -414,21 +417,22 @@ unique_ptr<ParseGraph> Parser::post_process() {
     }
   }
 
-  for (auto n : pg.nodes)
+  for (auto n : pg.nodes) //leafs should have the right ends, not propagate this to parents in a no-brainer way
     for (auto p : n.parents)
-      pg.ends[p] = max(pg.ends[p], pg.starts[n.n]); //not ideal
+      pg.ends[p] = max(pg.ends[p], pg.starts[n.n]);
 
   // we have to end the leaf node.
   // We run through them in sequence, and in theory by construction they should
   // be consecutive, so we can end them with the start of the next leaf
   // Possible error: In ambiguous parse cases both cases might be represented, this screws things up
-  int last_n = -1;
+  
+  /*int last_n = -1;
   for (auto n : pg.nodes)
     if (!n.children.size()) {
       if (last_n != -1)
         pg.ends[last_n] = pg.starts[n.n];
       last_n = n.n;
-    }
+    }*/
 
   // cout << "leaf: " << pg.name_map[pg.name_ids[n.n]] << " " << pg.starts[n.n]
   // << endl;

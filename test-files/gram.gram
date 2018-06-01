@@ -5,7 +5,7 @@ options option | options ws '\|' ws option
 option option ws rule | rule
 rule name | matchname | keyname
 keyname key ':' name | key ':' matchname
-key name
+key '[_[:alpha:]]+'
 rulename name
 matchname quote notquote quote | dquote notdquote dquote
 quote "\'"
