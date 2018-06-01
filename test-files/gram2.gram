@@ -1,0 +1,15 @@
+S line '\n' | line '\n' S
+ws '[ ]+'
+line rulename ws options
+options option | options ws '\|' ws option
+option option ws rule | rule
+rule name | matchname | keyname
+keyname key ':' name | key ':' matchname
+key '[_[:alpha:]]+'
+rulename name
+matchname quote str:notquote quote | dquote str:notdquote dquote
+quote "\'"
+notquote "[^\']*"
+dquote '\"'
+notdquote '[^\"]*'
+name '[_[:alpha:]]+'
