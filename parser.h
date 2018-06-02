@@ -75,6 +75,9 @@ struct Parser {
 
   void fail_message();
 
+  //resets parser state, but not ruleset. To be used to before parsing another buffer. 
+  void reset();
+
   int size() { return nodes.size(); }
 };
 

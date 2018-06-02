@@ -82,7 +82,6 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent,
     cout << "adding: c" << cursor << " r" << rule << " i" << node.id << " p"
          << prop_node << " pa" << parent << " c" << crumb << endl;
 }
-
 void Parser::load(string filename) {
   ifstream infile(filename);
   buffer =
@@ -267,8 +266,7 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
   //// post processing
   vector<int> active_nodes;
-  set<int> seen_nodes;
-  priority_queue<int> q;
+    priority_queue<int> q;
   q.push(end_node);
   // int n = end_node;
 
@@ -282,15 +280,15 @@ unique_ptr<ParseGraph> Parser::post_process() {
     int n = q.top();
     q.pop();
 
-    if (!seen_nodes.count(n)) {
-      //active_nodes.push_back(n);
-      active[n] = true;
-      seen_nodes.insert(n);
+    if (active[n])
+      continue;
 
-      //active_nodes.push_back(n); ///to remove
-      for (int c : crumbs[n])
-        q.push(c);
-    }
+    //active_nodes.push_back(n);
+    active[n] = true;
+
+    //active_nodes.push_back(n); ///to remove
+    for (int c : crumbs[n])
+      q.push(c);
   }
   
   //Pass two, follow children
@@ -299,22 +297,24 @@ unique_ptr<ParseGraph> Parser::post_process() {
   //Make children links
   vector<set<int>> children(nodes.size());
   for (int n(0); n < nodes.size(); ++n)
-    for (int p : parents[properties[n]])
+    for (int p : parents[properties[n]]) {
+      if (n == properties[n])
+        cout << ruleset.names[nodes[p].rule] << " " << p << " " << n << endl;
       children[p].insert(n);
-  
-  seen_nodes.clear();
+    }
   std::priority_queue<int, std::vector<int>, std::greater<int> > q2;
   q2.push(0);
   
   vector<bool> active_pass2(size());
+  vector<bool> seen_nodes(size());
   
   while (!q2.empty()) {
     int n = q2.top();
     q2.pop();
     
-    if (seen_nodes.count(n))
+    if (seen_nodes[n])
       continue;
-    seen_nodes.insert(n);
+    seen_nodes[n] = true;
     
 
     if (active[n] && (!children[n].size() || returned[n])) { //nodes with children (options) need to have returned, this filters out the wrong paths
@@ -462,9 +462,9 @@ void Parser::dot_graph_debug(string filename) {
             << ruleset.types[nodes[i].rule] << " " << nodes[i] << "\"]" << endl;
     //dotfile << "node" << i << " -> char" << nodes[i].cursor
     //<< " [color=\"grey\"]" << endl;
-    //for (auto c : crumbs[i])
-      //dotfile << "node" << i << " -> node" << c << " [style=dashed, color=grey]"
-        //      << endl;
+    for (auto c : crumbs[i])
+      dotfile << "node" << i << " -> node" << c << " [style=dashed, color=grey]"
+              << endl;
 
     // if (properties[i] == i)
     for (auto p : parents[properties[i]])
@@ -503,4 +503,18 @@ unique_ptr<ParseGraph> Parser::parse(string input_file) {
   });
   pg->compact();
   return pg;
+}
+
+void Parser::reset() {
+  nodes.clear();
+  properties.clear();
+  parents.clear();
+  ends.clear();
+  crumbs.clear();
+  node_occurence.clear();
+  returned.clear();
+  heads = priority_queue<NodeIndex>(); // for whatever reason pqueue doesn't have clear
+
+  end_node = 0;
+  furthest = 0;
 }
