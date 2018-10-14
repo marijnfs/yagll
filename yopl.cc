@@ -14,7 +14,9 @@ int main(int argc, char **argv) {
 
   Parser parser(gram_file);
   auto parse_graph = parser.parse(input_file);
-
+  
+  parser.dot_graph_debug("graphdebug.dot");
+  
   if (!parse_graph)
     return 0;
 
@@ -49,13 +51,13 @@ int main(int argc, char **argv) {
   cout << "LEAF:" << endl;
   vector<int> bla(parse_graph->size());
   parse_graph->visit_bottom_up([&bla](ParseGraph &pg, int n){
-      cout << "{" << pg.name(n) << " : " << pg.substr(n) << endl;
+      cout << n << " {" << pg.name(n) << " : " << pg.substr(n) << endl;
       bla[n] = 1;
-      for (int c : pg.nodes[n].children) {
-        cout << "}" << pg.name(c) << " : " << pg.substr(c) << endl;
-        if (bla[c] != 1)
-          throw "";
-      }
+      //for (int c : pg.nodes[n].children) {
+      //  cout << c << " }" << pg.name(c) << " : " << pg.substr(c) << endl;
+      //  if (bla[c] == 1)
+      //    throw "";
+      //}
     });
 
   

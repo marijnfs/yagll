@@ -3,9 +3,13 @@ entry line | afunc
 line exp | stat
 stat name ws '=' ws exp
 exp binop | number | name
-binop plus | minus
+binop binopa | binopb
+binopa times | divide
+binopb plus | minus
 plus exp ws '\+' ws exp
 minus exp ws '-' ws exp
+times exp ws '\*' ws exp
+divide exp ws '\/' ws exp
 name '[[:alpha:]]+'
 number '[[:digit:]]+'
 ws ' *'

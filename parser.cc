@@ -28,7 +28,7 @@ bool NodeIndex::operator>(NodeIndex const &other) const {
 }
 
 ostream &operator<<(ostream &out, NodeIndex &ni) {
-  return out << "c" << ni.cursor << " r" << ni.rule << " i" << ni.id;
+  return out << "c" << ni.cursor << " r" << ni.rule << " i" << ni.id << " l" << ni.level;
 }
 
 ostream &operator<<(ostream &out, RuleType &t) {
@@ -65,8 +65,8 @@ Parser::Parser(string gram_file, LoadType load_type)
 }
 
 void Parser::push_node(int cursor, int rule, int prop_node, int parent,
-                       int crumb) { // does not check whether it exists
-  NodeIndex node{cursor, rule, int(nodes.size())};
+                       int crumb, int level) { // does not check whether it exists
+  NodeIndex node{cursor, rule, int(nodes.size()), level};
 
   node_occurence.insert(node);
   nodes.push_back(node);
@@ -121,7 +121,8 @@ void Parser::process() {
     int id = head.id;
     int cur = head.cursor;
     int r = head.rule;
-
+    int l = head.level;
+      
     switch (ruleset.types[r]) {
     case END:
       if (cur == buffer.size()) {
@@ -143,7 +144,7 @@ void Parser::process() {
         break; // no match
 
       // all is well, add the node
-      push_node(cur + m, r + 1, properties[id], -1, id);
+      push_node(cur + m, r + 1, properties[id], -1, id, l);
     } break;
     case OPTION: {
       // Option: Spawn one or more child rules which (possibly) return back and
@@ -158,7 +159,7 @@ void Parser::process() {
         // rules!) We check if the node exists first
         if (!node_occurence.count(ni)) {
           // create new node
-          push_node(cur, new_r, -1, id, id);
+          push_node(cur, new_r, -1, id, id, l + 1);
         } else {
           // node already exists, get the node
           int child_id = node_occurence.find(ni)->id;
@@ -179,7 +180,7 @@ void Parser::process() {
                     new_node)) { // TODO: maybe we should actually keep checking
                                  // for ends here
               // add node
-              push_node(end_node.cursor, r + 1, properties[id], -1, e);
+              push_node(end_node.cursor, r + 1, properties[id], -1, e, l + 1);
             } else {
               int existing_id = node_occurence.find(new_node)->id;
               // int existing_prop = properties[existing_id];
@@ -202,11 +203,11 @@ void Parser::process() {
       for (int p : par) {
         returned[p] = true;
 
-        auto new_node = NodeIndex{cur, nodes[p].rule + 1};
+        //auto new_node = NodeIndex{cur, nodes[p].rule + 1};
         
         // if (!node_occurence.count(new_node)) {// ||
         // ruleset.types[new_node.rule] == RETURN) {
-        push_node(cur, nodes[p].rule + 1, properties[p], -1, id);
+        push_node(cur, nodes[p].rule + 1, properties[p], -1, id, l - 1);
         //} else {
         // int existing_id = node_occurence.find(new_node)->id;
         // cout << "exist, add to " << existing_id << " " << nodes[existing_id]
@@ -334,8 +335,10 @@ unique_ptr<ParseGraph> Parser::post_process() {
     int n = q.top();
     // cout << "q: " << n << endl;
     q.pop();
-    if (!active[n])  //reusing active vector to prevent looping
+    if (!active[n]) { //reusing active vector to prevent looping
+      cout << "repeat: " << ruleset.names[nodes[n].rule] << " " << nodes[n].cursor << endl;
       continue;
+    }
     active[n] = false; 
 
     if (active_pass2[n])
@@ -381,7 +384,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
     pg.starts.push_back(node.cursor);
     pg.ends.push_back(ends[n]);
     pg.cleanup.push_back(false);
-
+    pg.levels.push_back(node.level);
+    
     ParsedNode &pn(last(pg.nodes));
 
     // get name id from rule with name
@@ -467,9 +471,9 @@ void Parser::dot_graph_debug(string filename) {
               << endl;
 
     // if (properties[i] == i)
-    for (auto p : parents[properties[i]])
-      dotfile << "node" << i << " -> node" << p
-              << " [color=\"black:invis:black\"]" << endl;
+    //for (auto p : parents[properties[i]])
+    //dotfile << "node" << i << " -> node" << p
+    //        << " [color=\"black:invis:black\"]" << endl;
   }
   dotfile << "}" << endl;
 }

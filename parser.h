@@ -20,7 +20,8 @@
 struct NodeIndex {
   int cursor = -1, rule = -1;
   int id = -1;
-
+  int level = 0;
+  
   bool operator<(NodeIndex const &other) const;
   bool operator>(NodeIndex const &other) const;
 };
@@ -58,7 +59,7 @@ struct Parser {
   // add a node
   // does not check whether it exists
   void push_node(int cursor, int rule, int prop_node, int parent = -1,
-                 int crumb = -1);
+                 int crumb = -1, int level = 0);
 
   // parse a file
   std::unique_ptr<ParseGraph> parse(std::string input_file);

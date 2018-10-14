@@ -19,6 +19,7 @@ struct ParseGraph {
   std::vector<int> starts;
   std::vector<int> ends;
   std::vector<int> name_ids;
+  std::vector<int> levels;
   std::vector<bool> cleanup; // boolean indicating whether a node is used,
                              // relevant for compacting
 

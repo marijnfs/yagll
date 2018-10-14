@@ -22,8 +22,8 @@ void ParseGraph::print_dot(string filename) {
             ? string("'") + buffer.substr(starts[n], ends[n] - starts[n]) + "'"
             : "";
     replace(sub.begin(), sub.end(), '"', '#');
-    dotfile << "node" << n << " [label=\"" << name << " " << sub << " :"
-            << starts[n] << "\"]" << endl;
+    dotfile << "node" << n << " " << " [label=\"" << name << " " << sub << " :"
+            << starts[n] << " " << levels[n] << "\"]" << endl;
     for (auto p : nodes[n].parents)
       dotfile << "node" << n << " -> "
               << "node" << p << endl;
@@ -217,11 +217,11 @@ void ParseGraph::visit_bfs(Callback cb) {
 void ParseGraph::visit_dfs(Callback cb) {
   vector<bool> visited(size());
   
-  queue<int> q;
+  stack<int> q;
   q.push(0); //start at 0
   
   while (q.size()) {
-    int n = q.front();
+    int n = q.top();
     q.pop();
 
     if (visited[n])
@@ -242,6 +242,7 @@ void ParseGraph::visit_bottom_up(Callback cb) {
   vector<int> ordered_n;
   ordered_n.reserve(nodes.size());
   visit_bfs([&ordered_n](ParseGraph &pg, int n) {
+      cout << n << endl;
       ordered_n.push_back(n);
     });
   reverse(ordered_n.begin(), ordered_n.end());
