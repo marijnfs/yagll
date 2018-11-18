@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   string gram_file(argv[1]);
   string input_file(argv[2]);
 
-  Parser parser(gram_file);
+  Parser parser(gram_file, LOAD_BASIC);
   auto parse_graph = parser.parse(input_file);
   
   parser.dot_graph_debug("graphdebug.dot");

@@ -19,7 +19,7 @@ struct ParseGraph {
   std::vector<int> starts;
   std::vector<int> ends;
   std::vector<int> name_ids;
-  std::vector<int> levels;
+  //std::vector<int> levels;
   std::vector<bool> cleanup; // boolean indicating whether a node is used,
                              // relevant for compacting
 
@@ -32,6 +32,37 @@ struct ParseGraph {
   /// cleanup adjusts all relevant indices as required, also in parsed nodes
   void compact();
 
+  void add_node(int nodeid, int start, int end, std::string name) {
+    nodes.push_back(ParsedNode{nodeid});
+    starts.push_back(start);
+    ends.push_back(end);
+    cleanup.push_back(false);
+
+    int name_id = -1;
+    if (name.size())
+      name_id = add_rulename(name);
+    name_ids.push_back(name_id);
+  }
+
+  void add_connection(int p, int c) {
+    if (p > nodes.size() || c > nodes.size())
+      throw "nodes dont exist";
+
+    nodes[p].children.insert(c);
+    nodes[c].parents.insert(p);
+  }
+  
+  int add_rulename(std::string name) {
+    int name_id(-1);
+    if (!rname_map.count(name)) {
+      name_id = rname_map.size();
+      rname_map[name] = name_id;
+      name_map[name_id] = name;
+    } else
+      name_id = rname_map[name];
+    return name_id;
+  }
+  
   void filter(std::function<void(ParseGraph &, int)> callback);
 
   // get nodes with certain name, connected to given root node, allow

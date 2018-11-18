@@ -22,8 +22,8 @@ void ParseGraph::print_dot(string filename) {
             ? string("'") + buffer.substr(starts[n], ends[n] - starts[n]) + "'"
             : "";
     replace(sub.begin(), sub.end(), '"', '#');
-    dotfile << "node" << n << " " << " [label=\"" << name << " " << sub << " :"
-            << starts[n] << " " << levels[n] << "\"]" << endl;
+    dotfile << "node" << n << " " << " [label=\"" << name << " " << sub << " "
+            << starts[n] << ":" << ends[n] << "\"]" << endl;
     for (auto p : nodes[n].parents)
       dotfile << "node" << n << " -> "
               << "node" << p << endl;
@@ -40,6 +40,7 @@ int ParseGraph::root() {
 
 std::vector<int> ParseGraph::get_connected(int root, std::string filter_name,
                                            std::string connection) {
+  throw "";
   if (root < 0)
     throw StringException("can't get connected nodes, provided root is negative");
   vector<int> result;
@@ -69,6 +70,7 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name,
 }
 
 std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
+  cout << "get connected for: " << root << " curs:" << starts[root] << " " << name(root) << " looking for: " << filter_name << endl;
   vector<int> result;
   queue<int> s;
   s.push(root);
@@ -83,15 +85,18 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
       continue;
     visited.insert(n);
 
+    if (name(n) == filter_name) {
+      result.push_back(n);
+      continue;
+    }
+    
     for (int c : nodes[n].children) {
-      // cout << c << " |" << name(c) << "|" << endl;
-      if (name(c) == filter_name)
-        result.push_back(c);
-      else
-        s.push(c);
+      cout << c << ">" << starts[c] << " |" << name(c) << "|" << endl;
+      s.push(c);
     }
   }
 
+  sort(result.begin(), result.end(), [this](int n1, int n2) { return starts[n1] < starts[n2]; });
   return result;
 }
 
@@ -136,8 +141,10 @@ string ParseGraph::substr(int n) {
 }
 
 void ParseGraph::filter(function<void(ParseGraph &, int)> callback) {
+  fill(cleanup.begin(), cleanup.end(), false);
   for (int i(0); i < nodes.size(); ++i)
     callback(*this, i);
+  compact();
 }
 
 void ParseGraph::compact() {

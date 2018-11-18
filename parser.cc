@@ -28,7 +28,7 @@ bool NodeIndex::operator>(NodeIndex const &other) const {
 }
 
 ostream &operator<<(ostream &out, NodeIndex &ni) {
-  return out << "c" << ni.cursor << " r" << ni.rule << " i" << ni.id << " l" << ni.level;
+  return out << "c" << ni.cursor << " r" << ni.rule << " i" << ni.id;
 }
 
 ostream &operator<<(ostream &out, RuleType &t) {
@@ -65,8 +65,8 @@ Parser::Parser(string gram_file, LoadType load_type)
 }
 
 void Parser::push_node(int cursor, int rule, int prop_node, int parent,
-                       int crumb, int level) { // does not check whether it exists
-  NodeIndex node{cursor, rule, int(nodes.size()), level};
+                       int crumb, int prev) { // does not check whether it exists
+  NodeIndex node{cursor, rule, int(nodes.size()), prev};
 
   node_occurence.insert(node);
   nodes.push_back(node);
@@ -75,6 +75,7 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent,
   parents.push_back(parent == -1 ? set<int>() : set<int>{parent});
   crumbs.push_back(crumb == -1 ? set<int>() : set<int>{crumb});
   ends.push_back(set<int>());
+  prevs.push_back(prev);
   returned.push_back(false);
   
   heads.push(node);
@@ -82,7 +83,9 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent,
     cout << "adding: c" << cursor << " r" << rule << " i" << node.id << " p"
          << prop_node << " pa" << parent << " c" << crumb << endl;
 }
+
 void Parser::load(string filename) {
+  input_filename = filename;
   ifstream infile(filename);
   buffer =
       string(istreambuf_iterator<char>(infile), istreambuf_iterator<char>());
@@ -121,7 +124,7 @@ void Parser::process() {
     int id = head.id;
     int cur = head.cursor;
     int r = head.rule;
-    int l = head.level;
+    int prev = head.prev;
       
     switch (ruleset.types[r]) {
     case END:
@@ -144,7 +147,7 @@ void Parser::process() {
         break; // no match
 
       // all is well, add the node
-      push_node(cur + m, r + 1, properties[id], -1, id, l);
+      push_node(cur + m, r + 1, properties[id], -1, -1, id);
     } break;
     case OPTION: {
       // Option: Spawn one or more child rules which (possibly) return back and
@@ -157,15 +160,16 @@ void Parser::process() {
         // A node with same rule at this cursor can already be created by
         // another rule (not rarely recursively, especially with right-recursive
         // rules!) We check if the node exists first
+        //if (true) { /// HACK
         if (!node_occurence.count(ni)) {
           // create new node
-          push_node(cur, new_r, -1, id, id, l + 1);
+          push_node(cur, new_r, -1, id, -1, -1);
         } else {
           // node already exists, get the node
           int child_id = node_occurence.find(ni)->id;
 
           parents[child_id].insert(id); // add current node as a parent as well
-          crumbs[child_id].insert(id);  // we are the crumb now, also
+          //crumbs[child_id].insert(id);  // we are the crumb now, also
 
           // if already has ends, spawn nodes with the next rule
           // this gets complicated as crumbs have to be set properly as well
@@ -174,13 +178,14 @@ void Parser::process() {
           for (int e : ends_copy) {
             // we can spawn the next node
             auto end_node = nodes[e];
-            auto new_node = NodeIndex{end_node.cursor, r + 1};
+            int end_c = end_node.cursor;
+            auto new_node = NodeIndex{end_c, r + 1};
 
             if (!node_occurence.count(
                     new_node)) { // TODO: maybe we should actually keep checking
                                  // for ends here
               // add node
-              push_node(end_node.cursor, r + 1, properties[id], -1, e, l + 1);
+              push_node(end_node.cursor, r + 1, properties[id], -1, -1, -1);
             } else {
               int existing_id = node_occurence.find(new_node)->id;
               // int existing_prop = properties[existing_id];
@@ -197,7 +202,7 @@ void Parser::process() {
     case RETURN: {
       int properties_node = properties[id];
       ends[properties_node].insert(id);
-            
+      
       set<int> par = parents[properties_node];
 
       for (int p : par) {
@@ -207,7 +212,8 @@ void Parser::process() {
         
         // if (!node_occurence.count(new_node)) {// ||
         // ruleset.types[new_node.rule] == RETURN) {
-        push_node(cur, nodes[p].rule + 1, properties[p], -1, id, l - 1);
+        // push_node(cursor, rule,        propnode,   parent,crumb, prev)
+        push_node(cur, nodes[p].rule + 1, properties[p], -1, id, p);
         //} else {
         // int existing_id = node_occurence.find(new_node)->id;
         // cout << "exist, add to " << existing_id << " " << nodes[existing_id]
@@ -254,6 +260,7 @@ void Parser::fail_message() {
 }
 
 unique_ptr<ParseGraph> Parser::post_process() {
+  cout << "in postprocess" << endl;
   ParseGraph *parse_graph_ptr = new ParseGraph();
   ParseGraph &pg(*parse_graph_ptr);
 
@@ -265,9 +272,85 @@ unique_ptr<ParseGraph> Parser::post_process() {
     return unique_ptr<ParseGraph>(nullptr);
   }
 
+  /// new postprocess approach
+  {
+    struct QNode {
+      int p = 0, n = 0;
+    };
+
+    //ParseGraph pg;
+    pg.buffer = buffer;
+    queue<QNode> q;
+    q.push(QNode{0, end_node});
+    pg.add_node(0, 0, buffer.size(), "BASE");
+
+    while (q.size()) {
+      QNode node = q.front();
+      int n = node.n;
+      int p = node.p;
+      q.pop();
+      
+      int r = nodes[n].rule;
+      int c = nodes[n].cursor;
+      RuleType rt = ruleset.types[r];
+      
+      vector<int> node_sequence;
+      int prev = n;
+      while (prev != -1) {
+        node_sequence.push_back(prev);
+        prev = prevs[prev];
+      }
+      reverse(node_sequence.begin(), node_sequence.end());
+
+      for (int i(1); i < node_sequence.size(); ++i) {
+        int prev = node_sequence[i-1];
+        int current = node_sequence[i];
+        
+        int new_r = nodes[prev].rule;
+        int start_c = nodes[prev].cursor;
+        int end_c = nodes[current].cursor;
+
+        string rulename = ruleset.names[new_r];
+        int nodeid = pg.size();
+
+        cout << rulename << " " << start_c << ":" << end_c << endl;
+        
+         pg.add_node(nodeid, start_c, end_c, rulename);
+        pg.add_connection(p, nodeid);
+
+        for (int c : crumbs[current]) {
+          q.push(QNode{nodeid, c});
+        }
+        
+        //q.push(prev);
+        //current = prev;
+        //last_c = new_c;        
+      }
+    }
+
+    pg.print_dot("bloe.dot");
+    // basic whitespace and no-name filter
+    pg.filter([](ParseGraph &pg, int n) {
+        if (pg.name_ids[n] == -1)
+          pg.cleanup[n] = true;
+        if (pg.name_map[pg.name_ids[n]] == "ws")
+          pg.cleanup[n] = true;
+          });
+
+    static int bloe = 0;
+    ostringstream oss;
+    
+    oss << "bloe_" << bloe++ << ".dot";
+    pg.print_dot(oss.str());
+    return unique_ptr<ParseGraph>(parse_graph_ptr);
+  }
+
+  cout << "bla" << endl;
+  throw "";
+
   //// post processing
   vector<int> active_nodes;
-    priority_queue<int> q;
+  priority_queue<int> q;
   q.push(end_node);
   // int n = end_node;
 
@@ -275,23 +358,64 @@ unique_ptr<ParseGraph> Parser::post_process() {
   // follow crumbs from end to beginning
   // figure out which nodes were actually part of the successful parse
   vector<bool> active(nodes.size());
+
   cout << "nodes.size: " << nodes.size() << endl;
 
+
+  
+  
+  vector<bool> bla(nodes.size());
+  vector<set<int>> ptmp(nodes.size());
   while (!q.empty()) {
     int n = q.top();
-    q.pop();
+    int r = nodes[n].rule;
 
+    q.pop();
+    //cout << n << endl;
+    // if (properties[n] == n) //root node
+    //   if (!bla[n])
+    //     continue;
+
+    // bla[properties[n]] = true;
+    
     if (active[n])
       continue;
-
     //active_nodes.push_back(n);
     active[n] = true;
 
     //active_nodes.push_back(n); ///to remove
-    for (int c : crumbs[n])
+    for (int c : crumbs[n]) {
+      int cr = nodes[c].rule;
+
+      if (ruleset.types[cr] == RETURN) {
+        bla[properties[n]] = true;
+        ptmp[properties[c]].insert(properties[n]);
+      }
+      // if (ruleset.types[cr] == OPTION) {
+      //   ptmp[properties[c]].insert(properties[n]);
+      // }
+
+      if (!returned[properties[c]])
+        cout << "not returned: " << nodes[c] << " " << ruleset.types[nodes[c].rule] << endl;
       q.push(c);
+        
+    }  
   }
   
+  ofstream tmpout(input_filename + ".dot");
+  tmpout << "digraph test {" << endl;
+  for (int n(0); n < nodes.size(); ++n) {
+    if (active[n]) {
+
+      // tmpout << n << " " << ruleset.names[nodes[n].rule] << " " << nodes[n].cursor << "<-" << endl;
+      tmpout << n << " " << "[label=\"" << n << " " << ruleset.names[nodes[n].rule] << "\"]" << endl;
+      for (auto c : ptmp[n])
+        tmpout << n << " -> " << c << endl;
+        // tmpout << "   " << c << " " << ruleset.names[nodes[c].rule] << " " << nodes[c].cursor << endl;   
+    }
+  }
+  tmpout << "}" << endl;
+
   //Pass two, follow children
   //Needed, since the crumbs might still contain parts of failed parse tries
 
@@ -299,8 +423,10 @@ unique_ptr<ParseGraph> Parser::post_process() {
   vector<set<int>> children(nodes.size());
   for (int n(0); n < nodes.size(); ++n)
     for (int p : parents[properties[n]]) {
+      if (!returned[p] || !active[p])
+        continue;
       if (n == properties[n])
-        cout << ruleset.names[nodes[p].rule] << " " << p << " " << n << endl;
+        cout << ruleset.names[nodes[p].rule] << " p" << p << " n" << n << " " << returned[p] << " " << returned[n] << endl;
       children[p].insert(n);
     }
   std::priority_queue<int, std::vector<int>, std::greater<int> > q2;
@@ -380,13 +506,15 @@ unique_ptr<ParseGraph> Parser::post_process() {
     NodeIndex &node = nodes[n];
     int new_node_id = node_map[n];
 
-    pg.nodes.push_back(ParsedNode{new_node_id});
-    pg.starts.push_back(node.cursor);
-    pg.ends.push_back(ends[n]);
-    pg.cleanup.push_back(false);
-    pg.levels.push_back(node.level);
+    pg.add_node(new_node_id, node.cursor, ends[n], ruleset.names[node.rule]);
     
-    ParsedNode &pn(last(pg.nodes));
+    //pg.nodes.push_back(ParsedNode{new_node_id});
+    //pg.starts.push_back(node.cursor);
+    //pg.ends.push_back(ends[n]);
+    //pg.cleanup.push_back(false);
+   
+    
+    /*ParsedNode &pn(last(pg.nodes));
 
     // get name id from rule with name
     int name_id(-1);
@@ -394,7 +522,8 @@ unique_ptr<ParseGraph> Parser::post_process() {
     // if (!rule_name.size() && ruleset.matcher[node.rule]) //give matcher
     // pattern as name
     //  rule_name = ruleset.matcher[node.rule]->pattern();
-    if (rule_name.size()) {
+    if (rule_name.size()) { //if rule has a name
+      name_id = pg.
       if (!rname_map.count(rule_name)) {
         name_id = rname_map.size();
         rname_map[rule_name] = name_id;
@@ -403,7 +532,7 @@ unique_ptr<ParseGraph> Parser::post_process() {
         name_id = rname_map[rule_name];
     }
 
-    pg.name_ids.push_back(name_id);
+    pg.name_ids.push_back(name_id);*/
   }
   
   for (int n : active_nodes) {
@@ -505,7 +634,6 @@ unique_ptr<ParseGraph> Parser::parse(string input_file) {
     if (pg.name_map[pg.name_ids[n]] == "ws")
       pg.cleanup[n] = true;
   });
-  pg->compact();
   return pg;
 }
 

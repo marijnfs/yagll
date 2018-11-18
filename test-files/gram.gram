@@ -2,7 +2,8 @@ S line '\n' | line '\n' S
 ws '[ ]+'
 line rulename ws options
 options option | options ws '\|' ws option
-option option ws rule | rule
+option ruleset
+ruleset rule ws ruleset | rule
 rule name | matchname | keyname
 keyname key ':' name | key ':' matchname
 key '[_[:alpha:]]+'

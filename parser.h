@@ -20,7 +20,7 @@
 struct NodeIndex {
   int cursor = -1, rule = -1;
   int id = -1;
-  int level = 0;
+  int prev = -1;
   
   bool operator<(NodeIndex const &other) const;
   bool operator>(NodeIndex const &other) const;
@@ -42,6 +42,8 @@ struct Parser {
   std::vector<std::set<int>> ends; // where does this rule end, info needed when
                                    // spawning already ended nodes
   std::vector<std::set<int>> crumbs; // crumbs, for de-parsing
+  std::vector<int> prevs;
+  
   std::set<NodeIndex>
       node_occurence; // occurence set, checking if a node already exists
   std::vector<bool> returned; //vector keeping track which option nodes were returned on, needed for post-processing
@@ -50,7 +52,8 @@ struct Parser {
                                         // nodes
 
   std::string buffer;
-
+  std::string input_filename;
+  
   int end_node = 0;
   int furthest = 0; // aux var, to see how far we got in case of fail
 
@@ -59,7 +62,7 @@ struct Parser {
   // add a node
   // does not check whether it exists
   void push_node(int cursor, int rule, int prop_node, int parent = -1,
-                 int crumb = -1, int level = 0);
+                 int crumb = -1, int prev = -1);
 
   // parse a file
   std::unique_ptr<ParseGraph> parse(std::string input_file);

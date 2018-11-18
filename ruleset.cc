@@ -16,9 +16,11 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   add_option("ROOT", vector<int>{2});
   add_end();
   
-  LoadType grammar_load = LOAD_BASIC;
+  LoadType grammar_load;
   if (load_type == LOAD_YOPLYOPL)
     grammar_load = LOAD_YOPL;
+  if (load_type == LOAD_YOPL)
+    grammar_load = LOAD_BASIC;
   string parser_file(grammar_load == LOAD_BASIC ? "test-files/gram.gram" : "test-files/gram2.gram");
   Parser parser(parser_file, grammar_load);
 
@@ -26,11 +28,14 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   if (!pg)
     throw "failed to open file";
 
-  pg->print_dot("test.dot");
+  static int bloe = 0;
+  ostringstream oss;
+  oss << "test" << bloe++ << ".dot";
+  pg->print_dot(oss.str());
   
   int root = pg->root();
   cout << "root: " << root << endl;
-  auto lines = pg->get_connected(root, "line", "S");
+  auto lines = pg->get_connected(root, "line");
   cout << "nlines: " << lines.size() << endl;
 
   map<string, int> rule_option_map;
@@ -63,6 +68,7 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   for (int l : lines) {
     int rn = pg->get_one(l, "rulename");
     string rulename = pg->substr(rn);
+    
     for (int o : pg->get_connected(l, "option")) { // all options in this line
       bool first(true);
 
@@ -90,7 +96,7 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
             rule_pos = add_match(key, match_str);
           }
         } else { //not a keyname
-          cout << "substr: " << pg->substr(r) << "|" << endl;
+          //cout << "substr: " << pg->substr(r) << "|" << endl;
           n = pg->get_one(r, "name");
           if (n >= 0) {
             string spawn_name = pg->substr(n);
