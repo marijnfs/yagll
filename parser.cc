@@ -181,10 +181,14 @@ void Parser::process() {
             int end_c = end_node.cursor;
             auto new_node = NodeIndex{end_c, r + 1};
 
+
+            push_node(end_node.cursor, r + 1, properties[id], -1, e, id);
+            /*
             if (!node_occurence.count(
                     new_node)) { // TODO: maybe we should actually keep checking
                                  // for ends here
               // add node
+              //// parent,crumb,prev
               push_node(end_node.cursor, r + 1, properties[id], -1, -1, -1);
             } else {
               int existing_id = node_occurence.find(new_node)->id;
@@ -194,7 +198,7 @@ void Parser::process() {
               // parents[existing_prop].insert(parents[our_prop].begin(),
               // parents[our_prop].end());
               crumbs[existing_id].insert(e);
-            }
+              }*/
           }
         }
       }
