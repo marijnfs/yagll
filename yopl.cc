@@ -12,7 +12,7 @@ int main(int argc, char **argv) {
   string gram_file(argv[1]);
   string input_file(argv[2]);
 
-  Parser parser(gram_file, LOAD_BASIC);
+  Parser parser(gram_file);
   auto parse_graph = parser.parse(input_file);
   
   parser.dot_graph_debug("graphdebug.dot");
@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
   cout << "nodes: " << parse_graph->size() << endl;
   parse_graph->print_dot("compact.dot");
 
+  /*
   for (int n(0); n < parse_graph->nodes.size(); ++n) {
     if (parse_graph->name_ids[n] >= 0) {
       string sub = parse_graph->ends[n] < 0
@@ -33,17 +34,17 @@ int main(int argc, char **argv) {
       cout << parse_graph->name_map[parse_graph->name_ids[n]] << " " << sub
            << " " << parse_graph->starts[n] << endl;
     }
-  }
+    }*/
 
   cout << "BFS:" << endl;
   parse_graph->visit_bfs([](ParseGraph &pg, int n){
-      cout << pg.name(n) << " - " << pg.substr(n) << endl;
+      //cout << pg.name(n) << " - " << pg.substr(n) << endl;
     });
   cout << endl;
 
   cout << "DFS:" << endl;
   parse_graph->visit_dfs([](ParseGraph &pg, int n){
-      cout << pg.name(n) << " - " << pg.substr(n) << endl;
+      //cout << pg.name(n) << " - " << pg.substr(n) << endl;
     });
   cout << endl;
 
@@ -51,7 +52,7 @@ int main(int argc, char **argv) {
   cout << "LEAF:" << endl;
   vector<int> bla(parse_graph->size());
   parse_graph->visit_bottom_up([&bla](ParseGraph &pg, int n){
-      cout << n << " {" << pg.name(n) << " : " << pg.substr(n) << endl;
+      //cout << n << " {" << pg.name(n) << " : " << pg.substr(n) << endl;
       bla[n] = 1;
       //for (int c : pg.nodes[n].children) {
       //  cout << c << " }" << pg.name(c) << " : " << pg.substr(c) << endl;

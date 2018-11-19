@@ -46,7 +46,6 @@ struct Parser {
   
   std::set<NodeIndex>
       node_occurence; // occurence set, checking if a node already exists
-  std::vector<bool> returned; //vector keeping track which option nodes were returned on, needed for post-processing
   
   std::priority_queue<NodeIndex> heads; // active part, a queue with sorted
                                         // nodes
@@ -74,8 +73,6 @@ struct Parser {
   std::unique_ptr<ParseGraph> post_process();
 
   void dot_graph_debug(std::string filename);
-
-  void dot_graph_final(std::string filename);
 
   void fail_message();
 

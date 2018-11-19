@@ -70,7 +70,7 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name,
 }
 
 std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
-  cout << "get connected for: " << root << " curs:" << starts[root] << " " << name(root) << " looking for: " << filter_name << endl;
+  //cout << "get connected for: " << root << " curs:" << starts[root] << " " << name(root) << " looking for: " << filter_name << endl;
   vector<int> result;
   queue<int> s;
   s.push(root);
@@ -90,10 +90,8 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
       continue;
     }
     
-    for (int c : nodes[n].children) {
-      cout << c << ">" << starts[c] << " |" << name(c) << "|" << endl;
+    for (int c : nodes[n].children)
       s.push(c);
-    }
   }
 
   sort(result.begin(), result.end(), [this](int n1, int n2) { return starts[n1] < starts[n2]; });
@@ -249,7 +247,6 @@ void ParseGraph::visit_bottom_up(Callback cb) {
   vector<int> ordered_n;
   ordered_n.reserve(nodes.size());
   visit_bfs([&ordered_n](ParseGraph &pg, int n) {
-      cout << n << endl;
       ordered_n.push_back(n);
     });
   reverse(ordered_n.begin(), ordered_n.end());
