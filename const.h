@@ -5,7 +5,7 @@
 #include <exception>
 
 const bool DEBUG(false);
-const bool PRINT_RULES(true);
+const bool PRINT_RULES(false);
 
 struct StringException : public std::exception {
   StringException(std::string str_) : str(str_) {}

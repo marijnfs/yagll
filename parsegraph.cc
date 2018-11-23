@@ -257,3 +257,37 @@ void ParseGraph::visit_bottom_up(int root, Callback cb) {
   for (int n : ordered_n)
     cb(*this, n);
 }
+
+
+  void ParseGraph::add_node(int nodeid, int start, int end, std::string name) {
+    nodes.push_back(ParsedNode(nodeid));
+    starts.push_back(start);
+    ends.push_back(end);
+    cleanup.push_back(false);
+
+    int name_id = -1;
+    if (name.size())
+      name_id = add_rulename(name);
+    name_ids.push_back(name_id);
+  }
+
+  void ParseGraph::add_connection(int p, int c) {
+    if (p >= nodes.size() || c >= nodes.size()) {
+      std::cerr << "OUTSIDE CONNECTION" << std::endl;
+      return;
+    }
+
+    nodes[p].children.push_back(c);
+    nodes[c].parents.push_back(p);
+  }
+  
+  int ParseGraph::add_rulename(std::string name) {
+    int name_id(-1);
+    if (!rname_map.count(name)) {
+      name_id = rname_map.size();
+      rname_map[name] = name_id;
+      name_map[name_id] = name;
+    } else
+      name_id = rname_map[name];
+    return name_id;
+  }

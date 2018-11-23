@@ -31,15 +31,12 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
   if (!pg)
     throw "failed to open file";
 
-  static int bloe = 0;
   ostringstream oss;
-  oss << "test" << bloe++ << ".dot";
-  pg->print_dot(oss.str());
+  //pg->print_dot(oss.str());
   
   int root = pg->root();
-  cout << "root: " << root << endl;
   auto lines = pg->get_connected(root, "line");
-  cout << "nlines: " << lines.size() << endl;
+  //cout << "nlines: " << lines.size() << endl;
 
   map<string, int> rule_option_map;
   for (int n : lines) {
@@ -50,7 +47,7 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
       throw "";
     }
       
-    cout << "rule name: " << rulename << endl;
+    //cout << "rule name: " << rulename << endl;
     int pos = add_option(rulename, vector<int>()); // fill rules in later
     rule_option_map[rulename] = pos;
     add_ret();
@@ -64,7 +61,7 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
       qn = pg->get_one(n, "str");
     if (qn < 0)
       throw StringException("get_matchstr used but not found");
-    cout << "match substr: " << pg->substr(qn) << endl;
+    //cout << "match substr: " << pg->substr(qn) << endl;
     return pg->substr(qn);
   };
 
@@ -91,11 +88,11 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
               cerr << "couldn't find option: " << spawn_name << endl;
               throw "";
             }
-            cout << "adding key option: " << key << " " << spawn_name << endl;
+            //cout << "adding key option: " << key << " " << spawn_name << endl;
             rule_pos = add_option(key, vector<int>{rule_option_map[spawn_name]});
           } else { //must be key-match name
             string match_str = get_matchstr(n);
-            cout << "adding key match: " << key << " " << match_str << endl;
+            //cout << "adding key match: " << key << " " << match_str << endl;
             rule_pos = add_match(key, match_str);
           }
         } else { //not a keyname

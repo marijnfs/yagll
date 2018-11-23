@@ -61,7 +61,7 @@ int match(RE2 &matcher, string &str, int pos) {
 
 Parser::Parser(istream &infile, LoadType load_type)
     : ruleset(infile, load_type) {
-  cout << "created parser for gram, load type: " << load_type << endl;
+  if (DEBUG) cout << "created parser for gram, load type: " << load_type << endl;
 }
 
 void Parser::push_node(int cursor, int rule, int prop_node, int parent,
@@ -197,7 +197,7 @@ void Parser::process() {
 }
 
 void Parser::fail_message() {
-    cout << "FAILED" << endl;
+    cout << "Failed match, grammar error" << endl;
     int line_start(0), line_end(0);
     int line(1);
     int cur(0);
