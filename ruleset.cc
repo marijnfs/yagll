@@ -1,9 +1,10 @@
 #include "ruleset.h"
 #include "const.h"
 #include "parser.h"
+#include "gram.h"
 
 #include <exception>
-#include <fstream>
+#include <istream>
 #include <sstream>
 
 using namespace std;
@@ -11,7 +12,7 @@ using namespace std;
 RuleSet::RuleSet() {}
 
 // setup ruleset through yopl itself
-void RuleSet::yopl_load(string filename, LoadType load_type) {
+void RuleSet::yopl_load(istream &infile, LoadType load_type) {
   // base rules
   add_option("ROOT", vector<int>{2});
   add_end();
@@ -21,10 +22,12 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
     grammar_load = LOAD_YOPL;
   if (load_type == LOAD_YOPL)
     grammar_load = LOAD_BASIC;
-  string parser_file(grammar_load == LOAD_BASIC ? "test-files/gram.gram" : "test-files/gram2.gram");
-  Parser parser(parser_file, grammar_load);
+  //string parser_file(grammar_load == LOAD_BASIC ? "test-files/gram.gram" : "test-files/gram2.gram");
+  istringstream gram_in(grammar_load == LOAD_BASIC ? gram_h_str : gram2_h_str);
 
-  auto pg = parser.parse(filename);
+  Parser parser(gram_in, grammar_load);
+
+  auto pg = parser.parse(infile);
   if (!pg)
     throw "failed to open file";
 
@@ -136,23 +139,20 @@ void RuleSet::yopl_load(string filename, LoadType load_type) {
   }
 }
 
-RuleSet::RuleSet(string filename, LoadType load_type) {
-  load(filename, load_type);
+RuleSet::RuleSet(istream &infile, LoadType load_type) {
+  load(infile, load_type);
 }
 
-void RuleSet::load(string filename, LoadType load_type) {
+void RuleSet::load(istream &infile, LoadType load_type) {
   if (load_type == LOAD_YOPLYOPL)
-    yopl_load(filename, load_type);
+    yopl_load(infile, load_type);
   if (load_type == LOAD_YOPL)
-    yopl_load(filename, load_type);
+    yopl_load(infile, load_type);
   if (load_type == LOAD_BASIC)
-    basic_load(filename);
+    basic_load(infile);
 }
 
-void RuleSet::basic_load(string filename) {
-  cout << "basic load: " << filename << endl;
-  ifstream infile(filename.c_str());
-  
+void RuleSet::basic_load(istream &infile) {  
   enum Mode { BLANK = 0, READ = 1, ESCAPESINGLE = 2, ESCAPEDOUBLE = 3 };
 
   string root_rule_name;

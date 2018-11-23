@@ -56,7 +56,7 @@ struct Parser {
   int end_node = 0;
   int furthest = 0; // aux var, to see how far we got in case of fail
 
-  Parser(std::string gram_file, LoadType load_type = LOAD_YOPLYOPL);
+  Parser(std::istream &infile, LoadType load_type = LOAD_YOPLYOPL);
 
   // add a node
   // does not check whether it exists
@@ -64,9 +64,9 @@ struct Parser {
                  int crumb = -1, int prev = -1);
 
   // parse a file
-  std::unique_ptr<ParseGraph> parse(std::string input_file);
+  std::unique_ptr<ParseGraph> parse(std::istream &input_file);
 
-  void load(std::string filename);
+  void load(std::istream &infile);
 
   void process();
 

@@ -1,17 +1,22 @@
-S entry '\n' | S entry '\n'
-entry line | afunc
+S entries
+entries ws entry '\n' | ws entry '\n' entries
+entry line | afunc | call | printstatement
 line exp | stat
 stat name ws '=' ws exp
 exp binop | number | name
-binop binopa | binopb
+binop binopb | binopa
 binopa times | divide
 binopb plus | minus
 plus exp ws '\+' ws exp
 minus exp ws '-' ws exp
 times exp ws '\*' ws exp
 divide exp ws '\/' ws exp
-name '[[:alpha:]]+'
+name '[_[:alpha:]]+'
 number '[[:digit:]]+'
 ws ' *'
-afunc 'func' ws name '\(' args '\)'
+afunc 'func' ws name '\(' args '\)' ws block
+call name '\(' args '\)'
+block '{\n' entries '}'
 args name | name ',' ws args
+string '"' name '"'
+printstatement 'print\(' string '\)'

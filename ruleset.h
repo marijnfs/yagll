@@ -22,11 +22,11 @@ struct RuleSet {
   RuleSet();
 
   // parse a file with simple ruleset parser
-  RuleSet(std::string filename, LoadType load_type = LOAD_YOPLYOPL);
+  RuleSet(std::istream &infile, LoadType load_type = LOAD_YOPLYOPL);
 
-  void basic_load(std::string filename);
-  void yopl_load(std::string filename, LoadType load_type);
-  void load(std::string filename, LoadType load_type);
+  void basic_load(std::istream &infile);
+  void yopl_load(std::istream &infile, LoadType load_type);
+  void load(std::istream &infile, LoadType load_type);
 
   // add return op
   int add_ret();

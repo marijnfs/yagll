@@ -10,7 +10,7 @@
 struct ParsedNode {
   int n = -1;
 
-  std::set<int> parents, children;
+  std::vector<int> parents, children;
 };
 
 struct ParseGraph {
@@ -48,8 +48,8 @@ struct ParseGraph {
     if (p > nodes.size() || c > nodes.size())
       throw "nodes dont exist";
 
-    nodes[p].children.insert(c);
-    nodes[c].parents.insert(p);
+    nodes[p].children.push_back(c);
+    nodes[c].parents.push_back(p);
   }
   
   int add_rulename(std::string name) {
@@ -86,15 +86,18 @@ struct ParseGraph {
 
   typedef std::function<void(ParseGraph &pg, int n)> Callback;
 
+  std::vector<int> &children(int n) { return nodes[n].children; }
+  std::vector<int> &parents(int n) { return nodes[n].parents; }
+  
   // Visit breadth-first search
-  void visit_bfs(Callback cb);
+  void visit_bfs(int root, Callback cb);
 
   // Visit depth-first search
-  void visit_dfs(Callback cb);
+  void visit_dfs(int root, Callback cb);
   
   // Visit bottom up, starting from leafs
   // assuring when a node is visited, all its leafs have already visited
-  void visit_bottom_up(Callback cb);
+  void visit_bottom_up(int root, Callback cb);
 
   int size() { return nodes.size(); }
 };

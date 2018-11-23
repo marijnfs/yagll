@@ -159,23 +159,26 @@ void ParseGraph::compact() {
   for (int n(0); n < nodes.size(); ++n)
     if (cleanup[n]) {
       for (auto p : nodes[n].parents)
-        nodes[p].children.insert(nodes[n].children.begin(),
-                                 nodes[n].children.end());
+        copy(nodes[n].children.begin(),
+             nodes[n].children.end(),
+             back_inserter(nodes[p].children));
+             
       for (auto c : nodes[n].children)
-        nodes[c].parents.insert(nodes[n].parents.begin(),
-                                nodes[n].parents.end());
+        copy(nodes[n].parents.begin(),
+             nodes[n].parents.end(),
+             back_inserter(nodes[c].parents));
     }
 
   // Map over all indices, also for parents and children in all nodes
   for (int n(0); n < nodes.size(); ++n) {
     if (!cleanup[n]) {
-      set<int> new_parents, new_children;
+      vector<int> new_parents, new_children;
       for (auto p : nodes[n].parents)
         if (!cleanup[p])
-          new_parents.insert(node_map[p]);
+          new_parents.push_back(node_map[p]);
       for (auto c : nodes[n].children)
         if (!cleanup[c])
-          new_children.insert(node_map[c]);
+          new_children.push_back(node_map[c]);
       nodes[n].parents = new_parents;
       nodes[n].children = new_children;
 
@@ -196,11 +199,11 @@ void ParseGraph::compact() {
 }
 
 // Visit breadth-first search
-void ParseGraph::visit_bfs(Callback cb) {
+void ParseGraph::visit_bfs(int root, Callback cb) {
   vector<bool> visited(size());
   
   queue<int> q;
-  q.push(0); //start at 0
+  q.push(root); //start at 0
   
   while (q.size()) {
     int n = q.front();
@@ -219,11 +222,11 @@ void ParseGraph::visit_bfs(Callback cb) {
 }
 
 // Visit depth-first search
-void ParseGraph::visit_dfs(Callback cb) {
+void ParseGraph::visit_dfs(int root, Callback cb) {
   vector<bool> visited(size());
   
   stack<int> q;
-  q.push(0); //start at 0
+  q.push(root); 
   
   while (q.size()) {
     int n = q.top();
@@ -243,10 +246,10 @@ void ParseGraph::visit_dfs(Callback cb) {
 
 // Visit bottom up, starting from leafs
 // assuring when a node is visited, all its leafs have already visited
-void ParseGraph::visit_bottom_up(Callback cb) {
+void ParseGraph::visit_bottom_up(int root, Callback cb) {
   vector<int> ordered_n;
   ordered_n.reserve(nodes.size());
-  visit_bfs([&ordered_n](ParseGraph &pg, int n) {
+  visit_bfs(root, [&ordered_n](ParseGraph &pg, int n) {
       ordered_n.push_back(n);
     });
   reverse(ordered_n.begin(), ordered_n.end());

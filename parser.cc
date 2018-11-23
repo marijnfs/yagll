@@ -59,9 +59,9 @@ int match(RE2 &matcher, string &str, int pos) {
   return -1;
 }
 
-Parser::Parser(string gram_file, LoadType load_type)
-    : ruleset(gram_file, load_type) {
-  cout << "created parser for gram: " << gram_file << " load type: " << load_type << endl;
+Parser::Parser(istream &infile, LoadType load_type)
+    : ruleset(infile, load_type) {
+  cout << "created parser for gram, load type: " << load_type << endl;
 }
 
 void Parser::push_node(int cursor, int rule, int prop_node, int parent,
@@ -83,9 +83,7 @@ void Parser::push_node(int cursor, int rule, int prop_node, int parent,
          << prop_node << " pa" << parent << " c" << crumb << endl;
 }
 
-void Parser::load(string filename) {
-  input_filename = filename;
-  ifstream infile(filename);
+void Parser::load(istream &infile) {
   buffer =
       string(istreambuf_iterator<char>(infile), istreambuf_iterator<char>());
 }
@@ -297,7 +295,6 @@ unique_ptr<ParseGraph> Parser::post_process() {
     }
   }
 
-  pg.print_dot("bloe.dot");
   // basic whitespace and no-name filter
   pg.filter([](ParseGraph &pg, int n) {
       if (pg.name_ids[n] == -1)
@@ -337,18 +334,14 @@ void Parser::dot_graph_debug(string filename) {
   dotfile << "}" << endl;
 }
 
-unique_ptr<ParseGraph> Parser::parse(string input_file) {
-  cout << "parsing " << input_file << endl;
-  load(input_file);
+unique_ptr<ParseGraph> Parser::parse(istream &infile) {
+  load(infile);
   process();
-  dot_graph_debug("debug.dot");
   
   auto pg = post_process();
   if (!pg)
     return pg;
 
-  pg->print_dot("post-process-debug.dot");
-  
   // basic whitespace and no-name filter
   pg->filter([](ParseGraph &pg, int n) {
     if (pg.name_ids[n] == -1)
