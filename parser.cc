@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "const.h"
-#include "parser.h"
+#include "yagll.h"
 
 using namespace std;
 

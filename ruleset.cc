@@ -1,6 +1,6 @@
 #include "ruleset.h"
 #include "const.h"
-#include "parser.h"
+#include "yagll.h"
 #include "gram.h"
 
 #include <exception>
