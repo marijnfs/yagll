@@ -1,5 +1,6 @@
 #include "parsegraph.h"
 #include "const.h"
+#include "stringexception.h"
 
 #include <algorithm>
 #include <fstream>

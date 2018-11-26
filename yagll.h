@@ -17,6 +17,8 @@
 #include "parsegraph.h"
 #include "ruleset.h"
 
+#include "stringexception.h"
+
 struct NodeIndex {
   int cursor = -1, rule = -1;
   int id = -1;
