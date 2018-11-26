@@ -35,7 +35,7 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
   //pg->print_dot(oss.str());
   
   int root = pg->root();
-  auto lines = pg->get_connected(root, "line");
+  auto lines = pg->get_all(root, "line");
   //cout << "nlines: " << lines.size() << endl;
 
   map<string, int> rule_option_map;
@@ -69,10 +69,10 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
     int rn = pg->get_one(l, "rulename");
     string rulename = pg->substr(rn);
     
-    for (int o : pg->get_connected(l, "option")) { // all options in this line
+    for (int o : pg->get_all(l, "option")) { // all options in this line
       bool first(true);
 
-      for (int r : pg->get_connected(o, "rule")) { // go through all rule
+      for (int r : pg->get_all(o, "rule")) { // go through all rule
         int rule_pos(-1); // rulepos will point to the added rule, so we can add
                           // it to the rule option the first time
 

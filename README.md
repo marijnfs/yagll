@@ -30,6 +30,9 @@ License
 ============    
 License for all files in this repository: MPLv2.0, See LICENSE file
 
+Author
+======
+Marijn Stollenga
 
 Examples
 =======

@@ -38,39 +38,8 @@ int ParseGraph::root() {
   return -1;
 }
 
-std::vector<int> ParseGraph::get_connected(int root, std::string filter_name,
-                                           std::string connection) {
-  throw "";
-  if (root < 0)
-    throw StringException("can't get connected nodes, provided root is negative");
-  vector<int> result;
-  stack<int> s;
-  s.push(root);
 
-  set<int> visited;
-  while (s.size()) {
-    int n = s.top();
-    s.pop();
-
-    // prevent loops
-    if (visited.count(n))
-      continue;
-    visited.insert(n);
-
-    for (int c : nodes[n].children) {
-      // cout << c << " |" << name(c) << "|" << endl;
-      if (name(c) == filter_name)
-        result.push_back(c);
-      if (name(c) == connection)
-        s.push(c);
-    }
-  }
-
-  return result;
-}
-
-std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
-  //cout << "get connected for: " << root << " curs:" << starts[root] << " " << name(root) << " looking for: " << filter_name << endl;
+vector<int> ParseGraph::get_all(int root, string filter_name) {
   vector<int> result;
   queue<int> s;
   s.push(root);
@@ -98,7 +67,34 @@ std::vector<int> ParseGraph::get_connected(int root, std::string filter_name) {
   return result;
 }
 
-int ParseGraph::get_one(int root, std::string search_name) {
+vector<int> ParseGraph::get_all_recursive(int root, string filter_name) {
+  vector<int> result;
+  queue<int> s;
+  s.push(root);
+
+  set<int> visited;
+  while (s.size()) {
+    int n = s.front();
+    s.pop();
+
+    // prevent loops
+    if (visited.count(n))
+      continue;
+    visited.insert(n);
+
+    if (name(n) == filter_name) {
+      result.push_back(n);
+    }
+    
+    for (int c : nodes[n].children)
+      s.push(c);
+  }
+
+  sort(result.begin(), result.end(), [this](int n1, int n2) { return starts[n1] < starts[n2]; });
+  return result;
+}
+
+int ParseGraph::get_one(int root, string search_name) {
   if (root < 0)
     throw StringException("get_one called on neg root");
   queue<int> s;
@@ -128,9 +124,11 @@ int ParseGraph::get_one(int root, std::string search_name) {
 
 bool ParseGraph::has_name(int n) { return name_ids[n] != -1; }
 
-string ParseGraph::name(int n) {
-  if (!has_name(n))
-    return "";
+string const &ParseGraph::name(int n) {
+  if (!has_name(n)) {
+    static string empty("");
+    return empty;
+  }
   return name_map[name_ids[n]];
 }
 
@@ -249,7 +247,7 @@ void ParseGraph::visit_dfs(int root, Callback cb) {
 void ParseGraph::visit_bottom_up(int root, Callback cb) {
   vector<int> ordered_n;
   ordered_n.reserve(nodes.size());
-  visit_bfs(root, [&ordered_n](ParseGraph &pg, int n) {
+  visit_dfs(root, [&ordered_n](ParseGraph &pg, int n) {
       ordered_n.push_back(n);
     });
   reverse(ordered_n.begin(), ordered_n.end());
@@ -259,35 +257,35 @@ void ParseGraph::visit_bottom_up(int root, Callback cb) {
 }
 
 
-  void ParseGraph::add_node(int nodeid, int start, int end, std::string name) {
-    nodes.push_back(ParsedNode(nodeid));
-    starts.push_back(start);
-    ends.push_back(end);
-    cleanup.push_back(false);
+void ParseGraph::add_node(int nodeid, int start, int end, string name) {
+  nodes.push_back(ParsedNode(nodeid));
+  starts.push_back(start);
+  ends.push_back(end);
+  cleanup.push_back(false);
 
-    int name_id = -1;
-    if (name.size())
-      name_id = add_rulename(name);
-    name_ids.push_back(name_id);
+  int name_id = -1;
+  if (name.size())
+    name_id = add_rulename(name);
+  name_ids.push_back(name_id);
+}
+
+void ParseGraph::add_connection(int p, int c) {
+  if (p >= nodes.size() || c >= nodes.size()) {
+    cerr << "OUTSIDE CONNECTION" << endl;
+    return;
   }
 
-  void ParseGraph::add_connection(int p, int c) {
-    if (p >= nodes.size() || c >= nodes.size()) {
-      std::cerr << "OUTSIDE CONNECTION" << std::endl;
-      return;
-    }
+  nodes[p].children.push_back(c);
+  nodes[c].parents.push_back(p);
+}
 
-    nodes[p].children.push_back(c);
-    nodes[c].parents.push_back(p);
-  }
-  
-  int ParseGraph::add_rulename(std::string name) {
-    int name_id(-1);
-    if (!rname_map.count(name)) {
-      name_id = rname_map.size();
-      rname_map[name] = name_id;
-      name_map[name_id] = name;
-    } else
-      name_id = rname_map[name];
-    return name_id;
-  }
+int ParseGraph::add_rulename(string name) {
+  int name_id(-1);
+  if (!rname_map.count(name)) {
+    name_id = rname_map.size();
+    rname_map[name] = name_id;
+    name_map[name_id] = name;
+  } else
+    name_id = rname_map[name];
+  return name_id;
+}
