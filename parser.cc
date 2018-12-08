@@ -89,9 +89,9 @@ void Parser::load(istream &infile) {
 }
 
 void Parser::process() {
-  heads = priority_queue<NodeIndex>(); // clear your head! //stupid pqueue
+  heads = node_queue(); // clear your head! //stupid pqueue
                                        // doesn't have clear method
-
+  cout << "PROCESS" << endl;
   // add the ROOT node
   push_node(0, 0, 0); // cursor, rule, prop node
 
@@ -115,7 +115,7 @@ void Parser::process() {
     //cout << cur << " " << id << " " << r << " " << ruleset.types[r] << endl;
     //if (ruleset.names[r].size())
     //  cout << ruleset.names[r] << endl;
-    
+    string rulename =  ruleset.names[r];
     switch (ruleset.types[r]) {
     case END:
       if (cur == buffer.size()) {
@@ -169,12 +169,21 @@ void Parser::process() {
             auto end_node = nodes[e];
             int end_c = end_node.cursor;
             auto new_node = NodeIndex{end_c, r + 1};
+
+            //in theory we can always run the first part of this if function and just push a node
+            //but in reality this creates a blow up in options that seems to blow up exponentially
+            //Instead we should check if this node has already been added, and just add ourselved to that.
+            //There is however a sidecase where ambiguous parses that happen to rely on the same sub-parts
+            //start to interfere, thus we check if the options nodes of the found node is the same as hours.
+            //If its not, we still run the push node.
             if (!node_occurence.count(new_node))
               push_node(end_node.cursor, r + 1, properties[id], -1, e, id);
             else {
-              int id = node_occurence.find(new_node)->id;
-              ends[id].insert(e);
-              
+              int existing_id = node_occurence.find(new_node)->id;
+              if (properties[id] != properties[existing_id]) 
+                push_node(end_node.cursor, r + 1, properties[id], -1, e, id);
+              else
+                ends[existing_id].insert(e);
             }
           }
         }
@@ -186,8 +195,10 @@ void Parser::process() {
       
       set<int> par = parents[properties_node];
 
-      for (int p : par)
+      for (int p : par) {
+        auto retname = ruleset.names[nodes[p].rule];
         push_node(cur, nodes[p].rule + 1, properties[p], -1, id, p);
+      }
       
     } break;
     }
@@ -197,7 +208,8 @@ void Parser::process() {
 }
 
 void Parser::fail_message() {
-    cout << "Failed match, grammar error" << endl;
+    dot_graph_debug("debug.dot");
+    cerr << "Failed match, grammar error" << endl;
     int line_start(0), line_end(0);
     int line(1);
     int cur(0);
@@ -216,16 +228,16 @@ void Parser::fail_message() {
       }
     }
 
-    cout << "at line: " << line << ":" << cur << endl;
+    cerr << "at line: " << line << ":" << cur << endl;
 
     auto end_string = buffer.substr(line_start, line_end - line_start);
     replace(end_string.begin(), end_string.end(), '\t', ' ');
-    cout << "got to: " << endl << end_string << endl;
-    cout << string(cur, ' ') << "^" << endl;
+    cerr << "got to: " << endl << end_string << endl;
+    cerr << string(cur, ' ') << "^" << endl;
 
     for (auto n : nodes) {
       if (n.cursor == furthest && ruleset.types[n.rule] == MATCH)
-        cout << "trying to match: " << ruleset.matcher[n.rule]->pattern()
+        cerr << "trying to match: " << ruleset.matcher[n.rule]->pattern()
              << endl;
     }
 }
@@ -299,7 +311,7 @@ unique_ptr<ParseGraph> Parser::post_process() {
   pg.filter([](ParseGraph &pg, int n) {
       if (pg.name_ids[n] == -1)
         pg.cleanup[n] = true;
-      if (pg.name_map[pg.name_ids[n]] == "ws")
+      if (pg.name_map[pg.name_ids[n]] == "ws" || pg.name_map[pg.name_ids[n]] == "rws")
         pg.cleanup[n] = true;
     });
 
@@ -322,7 +334,7 @@ void Parser::dot_graph_debug(string filename) {
             << ruleset.types[nodes[i].rule] << " " << nodes[i] << "\"]" << endl;
     //dotfile << "node" << i << " -> char" << nodes[i].cursor
     //<< " [color=\"grey\"]" << endl;
-    for (auto c : crumbs[i])
+    for (auto c : parents[properties[i]])
       dotfile << "node" << i << " -> node" << c << " [style=dashed, color=grey]"
               << endl;
 
@@ -359,7 +371,7 @@ void Parser::reset() {
   ends.clear();
   crumbs.clear();
   node_occurence.clear();
-  heads = priority_queue<NodeIndex>(); // for whatever reason pqueue doesn't have clear
+  heads = node_queue(); // for whatever reason pqueue doesn't have clear
 
   end_node = 0;
   furthest = 0;

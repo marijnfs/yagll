@@ -30,6 +30,7 @@ struct NodeIndex {
 
 std::ostream &operator<<(std::ostream &out, NodeIndex &ni);
 
+typedef std::priority_queue<NodeIndex, std::vector<NodeIndex>, std::less<NodeIndex>> node_queue;
 struct Parser {
   RuleSet ruleset;
 
@@ -49,7 +50,7 @@ struct Parser {
   std::set<NodeIndex>
       node_occurence; // occurence set, checking if a node already exists
   
-  std::priority_queue<NodeIndex> heads; // active part, a queue with sorted
+  node_queue heads; // active part, a queue with sorted
                                         // nodes
 
   std::string buffer;
