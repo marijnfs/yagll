@@ -29,9 +29,6 @@ struct ParseGraph {
 
   std::string buffer;
 
-  /// compact runs through nodes and removes the ones that are marked for
-  /// cleanup adjusts all relevant indices as required, also in parsed nodes
-  void compact();
 
   void add_node(int nodeid, int start, int end, std::string name);
 
@@ -40,6 +37,16 @@ struct ParseGraph {
   int add_rulename(std::string name);
   
   void filter(std::function<void(ParseGraph &, int)> callback);
+
+  void squeeze(std::function<bool(ParseGraph &, int)> callback);
+  
+  void remove(std::function<bool(ParseGraph &, int)> callback);
+
+  /// compact runs through nodes and removes the ones that are marked for
+  /// cleanup adjusts all relevant indices as required, also in parsed nodes
+  void compact_cleanup();
+
+  void remove_cleanup();
 
   int get_one(int root, std::string name);
 

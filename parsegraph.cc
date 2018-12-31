@@ -141,19 +141,69 @@ void ParseGraph::filter(function<void(ParseGraph &, int)> callback) {
   fill(cleanup.begin(), cleanup.end(), false);
   for (int i(0); i < nodes.size(); ++i)
     callback(*this, i);
-  compact();
+  compact_cleanup();
 }
 
-void ParseGraph::compact() {
-  // First create a node map, -1 for removing nodes
-  int N(0);
-  vector<int> node_map(nodes.size());
-  for (int n(0); n < nodes.size(); ++n)
-    if (cleanup[n])
-      node_map[n] = -1;
-    else
-      node_map[n] = N++;
+void ParseGraph::squeeze(function<bool(ParseGraph &, int)> callback) {
+  fill(cleanup.begin(), cleanup.end(), false);
 
+  vector<bool> visited(size());
+  
+  queue<int> q;
+  q.push(0); //start at 0
+  
+  while (q.size()) {
+    int n = q.front();
+    q.pop();
+
+    if (visited[n])
+      continue;
+    visited[n] = true;
+
+    auto sq = callback(*this, n);
+    if (sq)
+      for (int c : nodes[n].children)
+        cleanup[c] = true; //overassign cleanup to kids
+
+    if (cleanup[n] && !sq)
+      cleanup[n] = false; //fix 'erronously set' cleanup
+    
+    for (int c : nodes[n].children)
+      q.push(c);
+  }
+
+  compact_cleanup();
+}
+
+void ParseGraph::remove(function<bool(ParseGraph &, int)> callback) {
+  fill(cleanup.begin(), cleanup.end(), false);
+  vector<bool> visited(size());
+  
+  queue<int> q;
+  q.push(0); //start at 0
+  
+  while (q.size()) {
+    int n = q.front();
+    q.pop();
+
+    if (visited[n])
+      continue;
+    visited[n] = true;
+
+    auto rem = cleanup[n] || callback(*this, n);
+    cleanup[n] = rem;
+
+    for (int c : nodes[n].children) {
+      if (rem) 
+        cleanup[c] = true;      
+      q.push(c);
+    }
+  }
+
+  remove_cleanup();
+}
+
+void ParseGraph::compact_cleanup() {
   // Make sure all removed nodes pass over their children and parent links
   for (int n(0); n < nodes.size(); ++n)
     if (cleanup[n]) {
@@ -167,6 +217,19 @@ void ParseGraph::compact() {
              nodes[n].parents.end(),
              back_inserter(nodes[c].parents));
     }
+
+  remove_cleanup();
+}
+
+void ParseGraph::remove_cleanup() {
+  // First create a node map, -1 for removing nodes
+  int N(0);
+  vector<int> node_map(nodes.size());
+  for (int n(0); n < nodes.size(); ++n)
+    if (cleanup[n])
+      node_map[n] = -1;
+    else
+      node_map[n] = N++;
 
   // Map over all indices, also for parents and children in all nodes
   for (int n(0); n < nodes.size(); ++n) {
@@ -194,7 +257,6 @@ void ParseGraph::compact() {
   ends.resize(N);
   name_ids.resize(N);
   cleanup.resize(N);
-  fill(cleanup.begin(), cleanup.end(), false);
 }
 
 // Visit breadth-first search
