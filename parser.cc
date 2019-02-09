@@ -308,11 +308,12 @@ unique_ptr<ParseGraph> Parser::post_process() {
   }
 
   // basic whitespace and no-name filter
-  pg.filter([](ParseGraph &pg, int n) {
+  pg.filter([](ParseGraph &pg, int n) -> bool {
       if (pg.name_ids[n] == -1)
-        pg.cleanup[n] = true;
+        return true;
       if (pg.name_map[pg.name_ids[n]] == "ws" || pg.name_map[pg.name_ids[n]] == "rws")
-        pg.cleanup[n] = true;
+        return true;
+      return false;
     });
 
   //static int bloe = 0;
@@ -357,9 +358,10 @@ unique_ptr<ParseGraph> Parser::parse(istream &infile) {
   // basic whitespace and no-name filter
   pg->filter([](ParseGraph &pg, int n) {
     if (pg.name_ids[n] == -1)
-      pg.cleanup[n] = true;
+      return true;
     if (pg.name_map[pg.name_ids[n]] == "ws")
-      pg.cleanup[n] = true;
+      return true;
+    return false;
   });
   return pg;
 }

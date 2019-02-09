@@ -137,14 +137,14 @@ string ParseGraph::substr(int n) {
   return buffer.substr(starts[n], ends[n] - starts[n]);
 }
 
-void ParseGraph::filter(function<void(ParseGraph &, int)> callback) {
+void ParseGraph::filter(BoolCallback callback) {
   fill(cleanup.begin(), cleanup.end(), false);
   for (int i(0); i < nodes.size(); ++i)
-    callback(*this, i);
+    cleanup[i] = callback(*this, i);
   compact_cleanup();
 }
 
-void ParseGraph::squeeze(function<bool(ParseGraph &, int)> callback) {
+void ParseGraph::squeeze(BoolCallback callback) {
   fill(cleanup.begin(), cleanup.end(), false);
 
   vector<bool> visited(size());
@@ -175,7 +175,7 @@ void ParseGraph::squeeze(function<bool(ParseGraph &, int)> callback) {
   compact_cleanup();
 }
 
-void ParseGraph::remove(function<bool(ParseGraph &, int)> callback) {
+void ParseGraph::remove(BoolCallback callback) {
   fill(cleanup.begin(), cleanup.end(), false);
   vector<bool> visited(size());
   
@@ -298,6 +298,54 @@ void ParseGraph::visit_dfs(int root, Callback cb) {
     visited[n] = true;
 
     cb(*this, n);
+
+    for (int c : nodes[n].children)
+      q.push(c);
+    
+  }
+}
+
+// Visit breadth-first search, filtered
+void ParseGraph::visit_bfs(int root, BoolCallback cb) {
+  vector<bool> visited(size());
+  
+  queue<int> q;
+  q.push(root); //start at 0
+  
+  while (q.size()) {
+    int n = q.front();
+    q.pop();
+
+    if (visited[n])
+      continue;
+    visited[n] = true;
+
+    if (!cb(*this, n))
+      continue;
+
+    for (int c : nodes[n].children)
+      q.push(c);
+    
+  }
+}
+
+// Visit depth-first search, filtered
+void ParseGraph::visit_dfs(int root, BoolCallback cb) {
+  vector<bool> visited(size());
+  
+  stack<int> q;
+  q.push(root); 
+  
+  while (q.size()) {
+    int n = q.top();
+    q.pop();
+
+    if (visited[n])
+      continue;
+    visited[n] = true;
+
+    if (!cb(*this, n))
+      continue;
 
     for (int c : nodes[n].children)
       q.push(c);

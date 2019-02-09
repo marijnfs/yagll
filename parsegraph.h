@@ -15,6 +15,9 @@ struct ParsedNode {
 };
 
 struct ParseGraph {
+  typedef std::function<void(ParseGraph &pg, int n)> Callback;
+  typedef std::function<bool(ParseGraph &pg, int n)> BoolCallback;
+
   std::vector<ParsedNode> nodes;
 
   std::vector<int> starts;
@@ -36,11 +39,11 @@ struct ParseGraph {
   
   int add_rulename(std::string name);
   
-  void filter(std::function<void(ParseGraph &, int)> callback);
+  void filter(BoolCallback callback);
 
-  void squeeze(std::function<bool(ParseGraph &, int)> callback);
+  void squeeze(BoolCallback callback);
   
-  void remove(std::function<bool(ParseGraph &, int)> callback);
+  void remove(BoolCallback callback);
 
   /// compact runs through nodes and removes the ones that are marked for
   /// cleanup adjusts all relevant indices as required, also in parsed nodes
@@ -64,7 +67,6 @@ struct ParseGraph {
 
   int root();
 
-  typedef std::function<void(ParseGraph &pg, int n)> Callback;
 
   std::vector<int> &children(int n) { return nodes[n].children; }
   std::vector<int> &parents(int n) { return nodes[n].parents; }
@@ -74,6 +76,12 @@ struct ParseGraph {
 
   // Visit depth-first search
   void visit_dfs(int root, Callback cb);
+
+  // Visit breadth-first search, filtered
+  void visit_bfs(int root, BoolCallback cb);
+
+  // Visit depth-first search, filtered
+  void visit_dfs(int root, BoolCallback cb);
   
   // Visit bottom up, starting from leafs
   // assuring when a node is visited, all its leafs have already visited
