@@ -306,7 +306,7 @@ void ParseGraph::visit_dfs(int root, Callback cb) {
 }
 
 // Visit breadth-first search, filtered
-void ParseGraph::visit_bfs(int root, BoolCallback cb) {
+void ParseGraph::visit_bfs_filtered(int root, BoolCallback cb) {
   vector<bool> visited(size());
   
   queue<int> q;
@@ -330,7 +330,7 @@ void ParseGraph::visit_bfs(int root, BoolCallback cb) {
 }
 
 // Visit depth-first search, filtered
-void ParseGraph::visit_dfs(int root, BoolCallback cb) {
+void ParseGraph::visit_dfs_filtered(int root, BoolCallback cb) {
   vector<bool> visited(size());
   
   stack<int> q;
@@ -365,6 +365,44 @@ void ParseGraph::visit_bottom_up(int root, Callback cb) {
   
   for (int n : ordered_n)
     cb(*this, n);
+}
+
+// Visit bottom up, starting from leafs
+// assuring when a node is visited, all its leafs have already visited
+void ParseGraph::visit_bottom_up(int root, Callback cb, BoolCallback filter) {
+  vector<int> ordered_n;
+  ordered_n.reserve(nodes.size());
+  visit_dfs_filtered(root, [&ordered_n, &filter, this](ParseGraph &pg, int n) -> bool {
+      ordered_n.push_back(n);
+      return filter(*this, n);
+    });
+  reverse(ordered_n.begin(), ordered_n.end());
+  
+  for (int n : ordered_n)
+    cb(*this, n);
+}
+
+void ParseGraph::sort_children(function<bool(int a, int b)> cmp) {
+  vector<bool> visited(size());
+  
+  queue<int> q;
+  q.push(0); //start at 0
+  
+  while (q.size()) {
+    int n = q.front();
+    q.pop();
+
+    if (visited[n])
+      continue;
+    visited[n] = true;
+
+    auto &children = nodes[n].children;
+
+    sort(children.begin(), children.end(), cmp);
+    for (int c : nodes[n].children)
+      q.push(c);
+  }
+
 }
 
 

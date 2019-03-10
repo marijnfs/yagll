@@ -78,14 +78,18 @@ struct ParseGraph {
   void visit_dfs(int root, Callback cb);
 
   // Visit breadth-first search, filtered
-  void visit_bfs(int root, BoolCallback cb);
+  void visit_bfs_filtered(int root, BoolCallback cb);
 
   // Visit depth-first search, filtered
-  void visit_dfs(int root, BoolCallback cb);
+  void visit_dfs_filtered(int root, BoolCallback cb);
   
-  // Visit bottom up, starting from leafs
+  // Visit bottom up, shttp://vps66856.doeigeld.comtarting from leafs
   // assuring when a node is visited, all its leafs have already visited
   void visit_bottom_up(int root, Callback cb);
+
+  void visit_bottom_up(int root, Callback cb, BoolCallback filter);
+
+  void sort_children(std::function<bool(int a, int b)> cmp);
 
   int size() { return nodes.size(); }
 };
