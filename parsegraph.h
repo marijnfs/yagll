@@ -22,22 +22,22 @@ struct ParseGraph {
 
   std::vector<int> starts;
   std::vector<int> ends;
-  std::vector<int> name_ids;
+  std::vector<int> type_ids;
   //std::vector<int> levels;
   std::vector<bool> cleanup; // boolean indicating whether a node is used,
                              // relevant for compacting
 
-  std::map<int, std::string> name_map;
-  std::map<std::string, int> rname_map;
+  std::map<int, std::string> type_map;
+  std::map<std::string, int> reverse_type_map;
 
   std::string buffer;
 
 
-  void add_node(int nodeid, int start, int end, std::string name);
+  void add_node(int nodeid, int start, int end, std::string type);
 
   void add_connection(int p, int c);
   
-  int add_rulename(std::string name);
+  int add_ruletype(std::string type);
   
   void filter(BoolCallback callback);
 
@@ -51,19 +51,19 @@ struct ParseGraph {
 
   void remove_cleanup();
 
-  int get_one(int root, std::string name);
+  int get_one(int root, std::string type);
 
-  std::vector<int> get_all(int root, std::string name);
+  std::vector<int> get_all(int root, std::string type);
 
-  std::vector<int> get_all_recursive(int root, std::string name);
+  std::vector<int> get_all_recursive(int root, std::string type);
 
   void print_dot(std::string filename);
 
-  bool has_name(int n);
+  bool has_type(int n);
 
-  std::string substr(int n);
+  std::string text(int n);
 
-  std::string const &name(int n);
+  std::string const &type(int n);
 
   int root();
 

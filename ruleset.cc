@@ -41,7 +41,7 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
   map<string, int> rule_option_map;
   for (int n : lines) {
     int rn = pg->get_one(n, "rulename");
-    string rulename = pg->substr(rn);
+    string rulename = pg->text(rn);
     if (rule_option_map.count(rulename)) {
       cerr << "double entry for rule: " << rulename << " node: " << n << " cur: " << pg->starts[n] << endl;
       throw "";
@@ -61,13 +61,13 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
       qn = pg->get_one(n, "str");
     if (qn < 0)
       throw StringException("get_matchstr used but not found");
-    //cout << "match substr: " << pg->substr(qn) << endl;
-    return pg->substr(qn);
+    //cout << "match substr: " << pg->text(qn) << endl;
+    return pg->text(qn);
   };
 
   for (int l : lines) {
     int rn = pg->get_one(l, "rulename");
-    string rulename = pg->substr(rn);
+    string rulename = pg->text(rn);
     
     for (int o : pg->get_all(l, "option")) { // all options in this line
       bool first(true);
@@ -80,10 +80,10 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
         // then add it and point rule_pos to it
         int n = pg->get_one(r, "keyname");
         if (n >= 0) { //keyname has been found
-          string key = pg->substr(pg->get_one(n, "key"));
+          string key = pg->text(pg->get_one(n, "key"));
           int namen = pg->get_one(n, "name");
           if (namen >= 0) {
-            string spawn_name = pg->substr(namen);
+            string spawn_name = pg->text(namen);
             if (!rule_option_map.count(spawn_name)) {
               cerr << "couldn't find option: " << spawn_name << endl;
               throw "";
@@ -96,10 +96,9 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
             rule_pos = add_match(key, match_str);
           }
         } else { //not a keyname
-          //cout << "substr: " << pg->substr(r) << "|" << endl;
           n = pg->get_one(r, "name");
           if (n >= 0) {
-            string spawn_name = pg->substr(n);
+            string spawn_name = pg->text(n);
             if (!rule_option_map.count(spawn_name)) {
               cerr << "couldn't find option: " << spawn_name << endl;
               throw "";

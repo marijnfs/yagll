@@ -309,9 +309,9 @@ unique_ptr<ParseGraph> Parser::post_process() {
 
   // basic whitespace and no-name filter
   pg.filter([](ParseGraph &pg, int n) -> bool {
-      if (pg.name_ids[n] == -1)
+      if (pg.type_ids[n] == -1)
         return true;
-      if (pg.name_map[pg.name_ids[n]] == "ws" || pg.name_map[pg.name_ids[n]] == "rws")
+      if (pg.type_map[pg.type_ids[n]] == "ws" || pg.type_map[pg.type_ids[n]] == "rws")
         return true;
       return false;
     });
@@ -357,9 +357,9 @@ unique_ptr<ParseGraph> Parser::parse(istream &infile) {
 
   // basic whitespace and no-name filter
   pg->filter([](ParseGraph &pg, int n) {
-    if (pg.name_ids[n] == -1)
+    if (pg.type_ids[n] == -1)
       return true;
-    if (pg.name_map[pg.name_ids[n]] == "ws")
+    if (pg.type_map[pg.type_ids[n]] == "ws")
       return true;
     return false;
   });

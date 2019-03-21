@@ -17,13 +17,13 @@ void ParseGraph::print_dot(string filename) {
 
   dotfile << "digraph parsetree {" << endl;
   for (int n(0); n < nodes.size(); ++n) {
-    string name = name_map.count(name_ids[n]) ? name_map[name_ids[n]] : "";
+    string type = type_map.count(type_ids[n]) ? type_map[type_ids[n]] : "";
     string sub =
         nodes[n].children.size() == 0
             ? string("'") + buffer.substr(starts[n], ends[n] - starts[n]) + "'"
             : "";
     replace(sub.begin(), sub.end(), '"', '#');
-    dotfile << "node" << n << " " << " [label=\"" << name << " " << sub << " "
+    dotfile << "node" << n << " " << " [label=\"" << type << " " << sub << " "
             << starts[n] << ":" << ends[n] << "\"]" << endl;
     for (auto p : nodes[n].parents)
       dotfile << "node" << n << " -> "
@@ -34,7 +34,7 @@ void ParseGraph::print_dot(string filename) {
 
 int ParseGraph::root() {
   for (int n(0); n < nodes.size(); ++n)
-    if (name(n) == "ROOT")
+    if (type(n) == "ROOT")
       return n;
   return -1;
 }
@@ -55,7 +55,7 @@ vector<int> ParseGraph::get_all(int root, string filter_name) {
       continue;
     visited.insert(n);
 
-    if (name(n) == filter_name) {
+    if (type(n) == filter_name) {
       result.push_back(n);
       continue;
     }
@@ -83,7 +83,7 @@ vector<int> ParseGraph::get_all_recursive(int root, string filter_name) {
       continue;
     visited.insert(n);
 
-    if (name(n) == filter_name) {
+    if (type(n) == filter_name) {
       result.push_back(n);
     }
     
@@ -112,8 +112,8 @@ int ParseGraph::get_one(int root, string search_name) {
     visited.insert(n);
 
     for (int c : nodes[n].children) {
-      // cout << c << " |" << name(c) << "|" << endl;
-      if (name(c) == search_name)
+      // cout << c << " |" << type(c) << "|" << endl;
+      if (type(c) == search_name)
         return c;
       else
         s.push(c);
@@ -123,17 +123,17 @@ int ParseGraph::get_one(int root, string search_name) {
   return -1;
 }
 
-bool ParseGraph::has_name(int n) { return name_ids[n] != -1; }
+bool ParseGraph::has_type(int n) { return type_ids[n] != -1; }
 
-string const &ParseGraph::name(int n) {
-  if (!has_name(n)) {
+string const &ParseGraph::type(int n) {
+  if (!has_type(n)) {
     static string empty("");
     return empty;
   }
-  return name_map[name_ids[n]];
+  return type_map[type_ids[n]];
 }
 
-string ParseGraph::substr(int n) {
+string ParseGraph::text(int n) {
   return buffer.substr(starts[n], ends[n] - starts[n]);
 }
 
@@ -247,7 +247,7 @@ void ParseGraph::remove_cleanup() {
       nodes[node_map[n]] = nodes[n];
       starts[node_map[n]] = starts[n];
       ends[node_map[n]] = ends[n];
-      name_ids[node_map[n]] = name_ids[n];
+      type_ids[node_map[n]] = type_ids[n];
     }
   }
 
@@ -255,7 +255,7 @@ void ParseGraph::remove_cleanup() {
   nodes.resize(N);
   starts.resize(N);
   ends.resize(N);
-  name_ids.resize(N);
+  type_ids.resize(N);
   cleanup.resize(N);
 }
 
@@ -406,16 +406,16 @@ void ParseGraph::sort_children(function<bool(int a, int b)> cmp) {
 }
 
 
-void ParseGraph::add_node(int nodeid, int start, int end, string name) {
+void ParseGraph::add_node(int nodeid, int start, int end, string type) {
   nodes.push_back(ParsedNode(nodeid));
   starts.push_back(start);
   ends.push_back(end);
   cleanup.push_back(false);
 
-  int name_id = -1;
-  if (name.size())
-    name_id = add_rulename(name);
-  name_ids.push_back(name_id);
+  int type_id = -1;
+  if (type.size())
+    type_id = add_ruletype(type);
+  type_ids.push_back(type_id);
 }
 
 void ParseGraph::add_connection(int p, int c) {
@@ -428,13 +428,13 @@ void ParseGraph::add_connection(int p, int c) {
   nodes[c].parents.push_back(p);
 }
 
-int ParseGraph::add_rulename(string name) {
-  int name_id(-1);
-  if (!rname_map.count(name)) {
-    name_id = rname_map.size();
-    rname_map[name] = name_id;
-    name_map[name_id] = name;
+int ParseGraph::add_ruletype(string type) {
+  int type_id(-1);
+  if (!reverse_type_map.count(type)) {
+    type_id = reverse_type_map.size();
+    reverse_type_map[type] = type_id;
+    type_map[type_id] = type;
   } else
-    name_id = rname_map[name];
-  return name_id;
+    type_id = reverse_type_map[type];
+  return type_id;
 }
