@@ -287,7 +287,7 @@ void ParseGraph::visit_dfs(int root, Callback cb) {
   vector<bool> visited(size());
   
   stack<int> q;
-  q.push(root); 
+  q.push(root);
   
   while (q.size()) {
     int n = q.top();
@@ -299,8 +299,9 @@ void ParseGraph::visit_dfs(int root, Callback cb) {
 
     cb(*this, n);
 
-    for (int c : nodes[n].children)
-      q.push(c);
+    //push in revese order on the stack
+    for (auto it = children(n).rbegin(); it != children(n).rend(); ++it)
+      q.push(*it);
     
   }
 }
@@ -347,9 +348,9 @@ void ParseGraph::visit_dfs_filtered(int root, BoolCallback cb) {
     if (!cb(*this, n))
       continue;
 
-    for (int c : nodes[n].children)
-      q.push(c);
-    
+    //push in revese order on the stack
+    for (auto it = children(n).rbegin(); it != children(n).rend(); ++it)
+      q.push(*it);
   }
 }
 
@@ -359,8 +360,9 @@ void ParseGraph::visit_bottom_up(int root, Callback cb) {
   vector<int> ordered_n;
   ordered_n.reserve(nodes.size());
   visit_dfs(root, [&ordered_n](ParseGraph &pg, int n) {
-      ordered_n.push_back(n);
-    });
+    cout << n << " " << pg.type(n) << endl;
+    ordered_n.push_back(n);
+  });
   reverse(ordered_n.begin(), ordered_n.end());
   
   for (int n : ordered_n)
@@ -369,7 +371,7 @@ void ParseGraph::visit_bottom_up(int root, Callback cb) {
 
 // Visit bottom up, starting from leafs
 // assuring when a node is visited, all its leafs have already visited
-void ParseGraph::visit_bottom_up(int root, Callback cb, BoolCallback filter) {
+void ParseGraph::visit_bottom_up_filtered(int root, Callback cb, BoolCallback filter) {
   vector<int> ordered_n;
   ordered_n.reserve(nodes.size());
   visit_dfs_filtered(root, [&ordered_n, &filter, this](ParseGraph &pg, int n) -> bool {

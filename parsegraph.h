@@ -87,7 +87,7 @@ struct ParseGraph {
   // assuring when a node is visited, all its leafs have already visited
   void visit_bottom_up(int root, Callback cb);
 
-  void visit_bottom_up(int root, Callback cb, BoolCallback filter);
+  void visit_bottom_up_filtered(int root, Callback cb, BoolCallback filter);
 
   void sort_children(std::function<bool(int a, int b)> cmp);
 
