@@ -2,7 +2,8 @@
 
 const std::string gram_h_str = "S line \'\\n\' | line \'\\n\' S\n"\
 "ws \'[ ]+\'\n"\
-"line rulename ws options\n"\
+"line ruledef\n"\
+"ruledef rulename ws options\n"\
 "options option | options ws \'\\|\' ws option\n"\
 "option ruleset\n"\
 "ruleset rule ws ruleset | rule\n"\
@@ -19,7 +20,8 @@ const std::string gram_h_str = "S line \'\\n\' | line \'\\n\' S\n"\
 
 std::string const gram2_h_str = "S line \'\\n\' | line \'\\n\' S\n"\
 "ws \'[ ]+\'\n"\
-"line rulename ws options\n"\
+"line ruledef | comment\n"\
+"ruledef rulename ws options\n"\
 "options option | options ws \'\\|\' ws option\n"\
 "option ruleset\n"\
 "ruleset rule ws ruleset | rule\n"\
@@ -32,4 +34,5 @@ std::string const gram2_h_str = "S line \'\\n\' | line \'\\n\' S\n"\
 "notquote \"[^\\\']*\"\n"\
 "dquote \'\\\"\'\n"\
 "notdquote \'[^\\\"]*\'\n"\
-"name \'[_[:alpha:]]+\'\n";
+"name \'[_[:alpha:]]+\'\n"\
+"comment \'#\' comstr:\'[^\\n]*\'\n";
