@@ -360,7 +360,6 @@ void ParseGraph::visit_bottom_up(int root, Callback cb) {
   vector<int> ordered_n;
   ordered_n.reserve(nodes.size());
   visit_dfs(root, [&ordered_n](ParseGraph &pg, int n) {
-    cout << n << " " << pg.type(n) << endl;
     ordered_n.push_back(n);
   });
   reverse(ordered_n.begin(), ordered_n.end());
