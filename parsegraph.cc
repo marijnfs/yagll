@@ -123,6 +123,34 @@ int ParseGraph::get_one(int root, string search_name) {
   return -1;
 }
 
+int ParseGraph::get_one(int root, set<string> search_names) {
+  if (root < 0)
+    throw StringException("get_one called on neg root");
+  queue<int> s;
+  s.push(root);
+
+  set<int> visited;
+  while (s.size()) {
+    int n = s.front();
+    s.pop();
+
+    // prevent loops
+    if (visited.count(n))
+      continue;
+    visited.insert(n);
+
+    for (int c : nodes[n].children) {
+      // cout << c << " |" << type(c) << "|" << endl;
+      if (search_names.count(type(c)))
+        return c;
+      else
+        s.push(c);
+    }
+  }
+
+  return -1;
+}
+
 bool ParseGraph::has_type(int n) { return type_ids[n] != -1; }
 
 string const &ParseGraph::type(int n) {

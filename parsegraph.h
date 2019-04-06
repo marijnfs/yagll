@@ -53,6 +53,8 @@ struct ParseGraph {
 
   int get_one(int root, std::string type);
 
+  int get_one(int root, std::set<std::string> search_names);
+
   std::vector<int> get_all(int root, std::string type);
 
   std::vector<int> get_all_recursive(int root, std::string type);
