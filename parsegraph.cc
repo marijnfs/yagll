@@ -32,6 +32,18 @@ void ParseGraph::print_dot(string filename) {
   dotfile << "}" << endl;
 }
 
+void ParseGraph::pprint(ostream &out, int n, int depth) {
+  for (int i(0); i < depth; ++i)
+    cout << "  ";
+  if (children(n).empty())
+    cout << type(n) << "(" << text(n) << ")" << endl;
+  else
+    cout << type(n) << endl;
+  
+  for (auto c : children(n))
+    pprint(out, c, depth + 1);
+}
+
 int ParseGraph::root() {
   for (int n(0); n < nodes.size(); ++n)
     if (type(n) == "ROOT")

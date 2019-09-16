@@ -61,6 +61,8 @@ struct ParseGraph {
 
   void print_dot(std::string filename);
 
+  void pprint(std::ostream &out, int n = 0, int depth = 0);
+
   bool has_type(int n);
 
   std::string text(int n);
