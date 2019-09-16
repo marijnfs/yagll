@@ -14,6 +14,8 @@ struct ParsedNode {
   std::vector<int> parents, children;
 };
 
+struct SearchNode;
+
 struct ParseGraph {
   typedef std::function<void(ParseGraph &pg, int n)> Callback;
   typedef std::function<bool(ParseGraph &pg, int n)> BoolCallback;
@@ -96,6 +98,22 @@ struct ParseGraph {
   void sort_children(std::function<bool(int a, int b)> cmp);
 
   int size() { return nodes.size(); }
+
+  SearchNode operator()(int n);
+};
+
+struct SearchNode {
+  int N = 0;
+  ParseGraph *pg = 0;
+
+  std::string text() {
+    return pg->text(N);
+  }
+
+  SearchNode child(int n) {
+    return SearchNode{pg->children(N)[n], pg};
+  }
+  
 };
 
 #endif

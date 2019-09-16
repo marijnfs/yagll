@@ -479,3 +479,7 @@ int ParseGraph::add_ruletype(string type) {
     type_id = reverse_type_map[type];
   return type_id;
 }
+
+SearchNode ParseGraph::operator()(int n) {
+  return SearchNode{n, this};
+}
