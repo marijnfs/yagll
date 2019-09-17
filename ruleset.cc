@@ -34,7 +34,7 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
   ostringstream oss;
   //pg->print_dot(oss.str());
   
-  int root = pg->root();
+  int root = 0;
   auto lines = pg->get_all(root, "ruledef");
   cout << "nlines: " << lines.size() << endl;
 

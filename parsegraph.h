@@ -71,9 +71,6 @@ struct ParseGraph {
 
   std::string const &type(int n);
 
-  int root();
-
-
   std::vector<int> &children(int n) { return nodes[n].children; }
   std::vector<int> &parents(int n) { return nodes[n].parents; }
   
@@ -100,20 +97,27 @@ struct ParseGraph {
   int size() { return nodes.size(); }
 
   SearchNode operator()(int n);
+
+  SearchNode root();
 };
 
 struct SearchNode {
   int N = 0;
   ParseGraph *pg = 0;
 
-  std::string text() {
-    return pg->text(N);
-  }
+  std::string text();
 
-  SearchNode child(int n) {
-    return SearchNode{pg->children(N)[n], pg};
-  }
+  SearchNode child(int n);
+
+  SearchNode child(std::string type);
+
+  std::vector<SearchNode> children();
+
+
+  std::vector<SearchNode> get_all(std::string type);
   
+  
+  std::vector<SearchNode> int_to_searchnodes(std::vector<int> &ints);
 };
 
 #endif

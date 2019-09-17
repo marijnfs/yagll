@@ -44,14 +44,6 @@ void ParseGraph::pprint(ostream &out, int n, int depth) {
     pprint(out, c, depth + 1);
 }
 
-int ParseGraph::root() {
-  for (int n(0); n < nodes.size(); ++n)
-    if (type(n) == "ROOT")
-      return n;
-  return -1;
-}
-
-
 vector<int> ParseGraph::get_all(int root, string filter_name) {
   vector<int> result;
   queue<int> s;
@@ -482,4 +474,8 @@ int ParseGraph::add_ruletype(string type) {
 
 SearchNode ParseGraph::operator()(int n) {
   return SearchNode{n, this};
+}
+
+SearchNode ParseGraph::root() {
+  return SearchNode{0, this};
 }
