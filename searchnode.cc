@@ -8,6 +8,10 @@ std::string SearchNode::text() {
   return pg->text(N);
 }
 
+std::string SearchNode::type() {
+  return pg->type(N);
+}
+
 SearchNode SearchNode::child(int n) {
   return SearchNode{pg->children(N)[n], pg};
 }
@@ -18,7 +22,7 @@ SearchNode SearchNode::child(string type) {
     if (pg->type(child) == type)
       return SearchNode{child, pg};
 
-  throw std::runtime_error("Couldn't find child type");
+  return SearchNode{-1, pg};
 }
 
 std::vector<SearchNode> SearchNode::children() {
@@ -30,8 +34,6 @@ std::vector<SearchNode> SearchNode::get_all(std::string type) {
   auto matches = pg->get_all(N, type);
   return int_to_searchnodes(matches);
 }
-  
-  
 
 std::vector<SearchNode> SearchNode::int_to_searchnodes(std::vector<int> &ints) {
   std::vector<SearchNode> nodes(ints.size());

@@ -380,7 +380,7 @@ void ParseGraph::visit_dfs_filtered(int root, BoolCallback cb) {
     if (!cb(*this, n))
       continue;
 
-    //push in revese order on the stack
+    //push in reverse order on the stack (it's fifo so last pushed is first popped)
     for (auto it = children(n).rbegin(); it != children(n).rend(); ++it)
       q.push(*it);
   }
@@ -394,10 +394,10 @@ void ParseGraph::visit_bottom_up(int root, Callback cb) {
   visit_dfs(root, [&ordered_n](ParseGraph &pg, int n) {
     ordered_n.push_back(n);
   });
-  reverse(ordered_n.begin(), ordered_n.end());
   
-  for (int n : ordered_n)
-    cb(*this, n);
+  auto it_end = ordered_n.rend();
+  for (auto it_n = ordered_n.rbegin(); it_n != it_end; ++it_n)
+    cb(*this, *it_n);
 }
 
 // Visit bottom up, starting from leafs
@@ -409,10 +409,10 @@ void ParseGraph::visit_bottom_up_filtered(int root, Callback cb, BoolCallback fi
       ordered_n.push_back(n);
       return filter(*this, n);
     });
-  reverse(ordered_n.begin(), ordered_n.end());
   
-  for (int n : ordered_n)
-    cb(*this, n);
+  auto it_end = ordered_n.rend();
+  for (auto it_n = ordered_n.rbegin(); it_n != it_end; ++it_n)
+    cb(*this, *it_n);
 }
 
 void ParseGraph::sort_children(function<bool(int a, int b)> cmp) {
