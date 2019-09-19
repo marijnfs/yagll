@@ -15,10 +15,84 @@ struct ParsedNode {
   std::vector<int> parents, children;
 };
 
-struct SearchNode;
+struct ParseGraph;
+struct SearchNode {
+  int N = -1;
+  ParseGraph *pg = 0;
+
+  std::string type();
+
+  std::string text();
+
+  template <typename T>
+  T text_to() {
+    auto text_str = text();
+    std::istringstream iss(text_str);
+    T val;
+    iss >> val;
+    return val;
+  }
+
+
+  SearchNode child(int n = 0);
+
+  SearchNode child(std::string type);
+
+  std::vector<SearchNode> children();
+
+  std::vector<SearchNode> get_all(std::string type);
+  
+  std::vector<SearchNode> int_to_searchnodes(std::vector<int> &ints);
+
+  //visit_bottom_up
+
+  //visit_dfs_filtered, 
+
+  bool valid() { return N != -1; }
+};
+
+struct GraphCallback {
+  virtual bool match(int n) {
+    return true;
+  }
+
+  virtual bool add_children(int n) {
+    return true;
+  }
+
+  virtual void operator()(int n) {
+  }
+};
+
+
+struct TypeGraphCallback : public GraphCallback {
+  typedef std::function<void(int)> CallbackFunc;
+  std::map<std::string, CallbackFunc> callbacks;
+  std::set<std::string> types_set;
+  
+  ParseGraph *pg = 0;
+
+  TypeGraphCallback(ParseGraph *pg_);
+
+  void register_callback(std::string type, CallbackFunc func);
+
+  virtual void operator()(int n) override;
+
+  virtual bool match(int n) override;
+
+  virtual bool add_children(int n) override;
+};
+
+struct BottomUpGraphCallback : public TypeGraphCallback {
+  virtual void run_default(int n);
+  virtual void operator()(int n) override;
+
+  virtual bool match(int n) override;
+
+  virtual bool add_children(int n) override;
+};
 
 struct ParseGraph {
-  typedef std::function<void(ParseGraph &pg, int n)> Callback;
   typedef std::function<bool(ParseGraph &pg, int n)> BoolCallback;
 
   std::vector<ParsedNode> nodes;
@@ -75,24 +149,10 @@ struct ParseGraph {
   std::vector<int> &children(int n) { return nodes[n].children; }
   std::vector<int> &parents(int n) { return nodes[n].parents; }
   
-  // Visit breadth-first search
-  void visit_bfs(int root, Callback cb);
+  void bottom_up(GraphCallback &callback, int root = 0);
 
-  // Visit depth-first search
-  void visit_dfs(int root, Callback cb);
-
-  // Visit breadth-first search, filtered
-  void visit_bfs_filtered(int root, BoolCallback cb);
-
-  // Visit depth-first search, filtered
-  void visit_dfs_filtered(int root, BoolCallback cb);
+  void top_down(GraphCallback &callback, int root = 0);
   
-  // Visit bottom up, shttp://vps66856.doeigeld.comtarting from leafs
-  // assuring when a node is visited, all its leafs have already visited
-  void visit_bottom_up(int root, Callback cb);
-
-  void visit_bottom_up_filtered(int root, Callback cb, BoolCallback filter);
-
   void sort_children(std::function<bool(int a, int b)> cmp);
 
   int size() { return nodes.size(); }
@@ -102,39 +162,5 @@ struct ParseGraph {
   SearchNode root();
 };
 
-struct SearchNode {
-  int N = -1;
-  ParseGraph *pg = 0;
-
-  std::string type();
-
-  std::string text();
-
-  template <typename T>
-  T text_to() {
-    auto text_str = text();
-    std::istringstream iss(text_str);
-    T val;
-    iss >> val;
-    return val;
-  }
-
-
-  SearchNode child(int n = 0);
-
-  SearchNode child(std::string type);
-
-  std::vector<SearchNode> children();
-
-  std::vector<SearchNode> get_all(std::string type);
-  
-  std::vector<SearchNode> int_to_searchnodes(std::vector<int> &ints);
-
-  //visit_bottom_up
-
-  //visit_dfs_filtered, 
-
-  bool valid() { return N != -1; }
-};
 
 #endif
