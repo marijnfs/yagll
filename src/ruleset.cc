@@ -36,13 +36,12 @@ void RuleSet::yopl_load(istream &infile, LoadType load_type) {
   
   int root = 0;
   auto lines = pg->get_all(root, "ruledef");
-  cout << "nlines: " << lines.size() << endl;
 
   map<string, int> rule_option_map;
   for (int n : lines) {
     int rn = pg->get_one(n, "rulename");
     string rulename = pg->text(rn);
-    cout << rulename << endl;
+
     if (rule_option_map.count(rulename)) {
       cerr << "double entry for rule: " << rulename << " node: " << n << " cur: " << pg->starts[n] << endl;
       throw "";
