@@ -1,3 +1,0 @@
-/home/marijnfs/dev/yagll/build/CMakeFiles/rebuild_cache.dir
-/home/marijnfs/dev/yagll/build/CMakeFiles/yagll.dir
-/home/marijnfs/dev/yagll/build/CMakeFiles/edit_cache.dir
