@@ -85,6 +85,44 @@ struct Parser {
   int size() { return nodes.size(); }
 };
 
+struct ParseGraph;
+struct SearchNode {
+  int N = -1;
+  ParseGraph *pg = 0;
+
+  std::string type();
+
+  std::string text();
+
+  template <typename T>
+  T text_to() {
+    auto text_str = text();
+    std::istringstream iss(text_str);
+    T val;
+    iss >> val;
+    return val;
+  }
+
+
+  SearchNode child(int n = 0);
+
+  SearchNode child(std::string type);
+
+  std::vector<SearchNode> children();
+
+  std::vector<SearchNode> get_all(std::string type);
+  
+  std::vector<SearchNode> int_to_searchnodes(std::vector<int> &ints);
+
+  //visit_bottom_up
+
+  //visit_dfs_filtered, 
+
+  bool valid() { return N != -1; }
+};
+
+void tree_print(ParseGraph &pg, int n, int depth);
+
 template <typename T> inline T &last(std::vector<T> &v) {
   return v[v.size() - 1];
 }

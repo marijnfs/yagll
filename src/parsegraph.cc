@@ -1,4 +1,5 @@
 #include "parsegraph.h"
+#include "yagll.h"
 #include "const.h"
 #include "stringexception.h"
 
@@ -409,4 +410,16 @@ SearchNode ParseGraph::operator()(int n) {
 
 SearchNode ParseGraph::root() {
   return SearchNode{0, this};
+}
+
+void tree_print(ParseGraph &pg, int n, int depth) {
+  for (int i(0); i < depth; ++i)
+    cout << "  ";
+  if (pg.type(n) == "name" || pg.type(n) == "varname" || pg.type(n) == "value" || pg.type(n) == "number")
+    cout << "[" << pg.starts[n] << "] " << pg.type(n) << "(" << pg.text(n) << ")" << endl;
+  else
+    cout << pg.type(n) << endl;
+
+  for (auto c : pg.children(n))
+    tree_print(pg, c, depth + 1); 
 }

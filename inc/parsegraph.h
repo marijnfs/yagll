@@ -8,6 +8,8 @@
 #include <vector>
 #include <sstream>
 
+struct ParseGraph;
+
 struct ParsedNode {
   int n = -1;
   ParsedNode(){}
@@ -15,41 +17,6 @@ struct ParsedNode {
   std::vector<int> parents, children;
 };
 
-struct ParseGraph;
-struct SearchNode {
-  int N = -1;
-  ParseGraph *pg = 0;
-
-  std::string type();
-
-  std::string text();
-
-  template <typename T>
-  T text_to() {
-    auto text_str = text();
-    std::istringstream iss(text_str);
-    T val;
-    iss >> val;
-    return val;
-  }
-
-
-  SearchNode child(int n = 0);
-
-  SearchNode child(std::string type);
-
-  std::vector<SearchNode> children();
-
-  std::vector<SearchNode> get_all(std::string type);
-  
-  std::vector<SearchNode> int_to_searchnodes(std::vector<int> &ints);
-
-  //visit_bottom_up
-
-  //visit_dfs_filtered, 
-
-  bool valid() { return N != -1; }
-};
 
 struct GraphCallback {
   virtual bool match(int n) {
@@ -92,6 +59,7 @@ struct BottomUpGraphCallback : public TypeGraphCallback {
   virtual bool add_children(int n) override;
 };
 
+struct SearchNode;
 struct ParseGraph {
   typedef std::function<bool(ParseGraph &pg, int n)> BoolCallback;
 

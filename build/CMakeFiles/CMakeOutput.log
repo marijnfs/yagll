@@ -28,24 +28,15 @@ The CXX compiler identification is GNU, found in "/home/marijnfs/dev/yagll/build
 Determining if the C compiler works passed with the following output:
 Change Dir: /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake cmTC_3a25b/fast && /usr/bin/gmake -f CMakeFiles/cmTC_3a25b.dir/build.make CMakeFiles/cmTC_3a25b.dir/build
-gmake[1]: Entering directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_3a25b.dir/testCCompiler.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_3a25b.dir/testCCompiler.c.o   -c /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_3a25b
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3a25b.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_3a25b.dir/testCCompiler.c.o  -o cmTC_3a25b 
-gmake[1]: Leaving directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
+Run Build Command(s):/usr/bin/ninja cmTC_3c846 && [1/2] Building C object CMakeFiles/cmTC_3c846.dir/testCCompiler.c.o
+[2/2] Linking C executable cmTC_3c846
 
 
 
 Detecting C compiler ABI info compiled with the following output:
 Change Dir: /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake cmTC_a4b0e/fast && /usr/bin/gmake -f CMakeFiles/cmTC_a4b0e.dir/build.make CMakeFiles/cmTC_a4b0e.dir/build
-gmake[1]: Entering directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o
-/usr/bin/cc   -v -o CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c
+Run Build Command(s):/usr/bin/ninja cmTC_c5f96 && [1/2] Building C object CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o
 Using built-in specs.
 COLLECT_GCC=/usr/bin/cc
 OFFLOAD_TARGET_NAMES=hsa:nvptx-none
@@ -53,8 +44,8 @@ Target: x86_64-suse-linux
 Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go,d --enable-offload-targets=hsa,nvptx-none=/usr/nvptx-none, --without-cuda-driver --disable-werror --with-gxx-include-dir=/usr/include/c++/9 --enable-ssp --disable-libssp --disable-libvtv --disable-cet --disable-libcc1 --enable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-libphobos --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-9 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --with-build-config=bootstrap-lto-lean --enable-link-mutex --build=x86_64-suse-linux --host=x86_64-suse-linux
 Thread model: posix
 gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) 
-COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
- /usr/lib64/gcc/x86_64-suse-linux/9/cc1 -quiet -v /usr/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o -version -o /tmp/ccoTJeYO.s
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/9/cc1 -quiet -v /usr/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o -version -o /tmp/cc6dbqum.s
 GNU C17 (SUSE Linux) version 9.2.1 20190820 [gcc-9-branch revision 274748] (x86_64-suse-linux)
 	compiled by GNU C version 9.2.1 20190820 [gcc-9-branch revision 274748], GMP version 6.1.2, MPFR version 4.0.2, MPC version 1.1.0, isl version isl-0.20-GMP
 
@@ -72,15 +63,13 @@ GNU C17 (SUSE Linux) version 9.2.1 20190820 [gcc-9-branch revision 274748] (x86_
 
 GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 Compiler executable checksum: 00000000000000000000000000000000
-COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
- /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o /tmp/ccoTJeYO.s
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o /tmp/cc6dbqum.s
 GNU assembler version 2.32 (x86_64-suse-linux) using BFD version (GNU Binutils; openSUSE Tumbleweed) 2.32
 COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/
 LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
-Linking C executable cmTC_a4b0e
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a4b0e.dir/link.txt --verbose=1
-/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o  -o cmTC_a4b0e 
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64'
+[2/2] Linking C executable cmTC_c5f96
 Using built-in specs.
 COLLECT_GCC=/usr/bin/cc
 COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper
@@ -91,10 +80,9 @@ Thread model: posix
 gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) 
 COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/
 LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_a4b0e' '-mtune=generic' '-march=x86-64'
- /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/ccZHHnGN.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_a4b0e /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_a4b0e' '-mtune=generic' '-march=x86-64'
-gmake[1]: Leaving directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c5f96' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/cc4EvVCo.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_c5f96 /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c5f96' '-mtune=generic' '-march=x86-64'
 
 
 
@@ -119,10 +107,7 @@ Parsed C implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command(s):/usr/bin/gmake cmTC_a4b0e/fast && /usr/bin/gmake -f CMakeFiles/cmTC_a4b0e.dir/build.make CMakeFiles/cmTC_a4b0e.dir/build]
-  ignore line: [gmake[1]: Entering directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building C object CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/usr/bin/cc   -v -o CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake/Modules/CMakeCCompilerABI.c]
+  ignore line: [Run Build Command(s):/usr/bin/ninja cmTC_c5f96 && [1/2] Building C object CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/cc]
   ignore line: [OFFLOAD_TARGET_NAMES=hsa:nvptx-none]
@@ -130,8 +115,8 @@ Parsed C implicit link information from above output:
   ignore line: [Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go,d --enable-offload-targets=hsa,nvptx-none=/usr/nvptx-none, --without-cuda-driver --disable-werror --with-gxx-include-dir=/usr/include/c++/9 --enable-ssp --disable-libssp --disable-libvtv --disable-cet --disable-libcc1 --enable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-libphobos --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-9 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --with-build-config=bootstrap-lto-lean --enable-link-mutex --build=x86_64-suse-linux --host=x86_64-suse-linux]
   ignore line: [Thread model: posix]
   ignore line: [gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) ]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
-  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/cc1 -quiet -v /usr/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o -version -o /tmp/ccoTJeYO.s]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/cc1 -quiet -v /usr/share/cmake/Modules/CMakeCCompilerABI.c -quiet -dumpbase CMakeCCompilerABI.c -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o -version -o /tmp/cc6dbqum.s]
   ignore line: [GNU C17 (SUSE Linux) version 9.2.1 20190820 [gcc-9-branch revision 274748] (x86_64-suse-linux)]
   ignore line: [	compiled by GNU C version 9.2.1 20190820 [gcc-9-branch revision 274748], GMP version 6.1.2, MPFR version 4.0.2, MPC version 1.1.0, isl version isl-0.20-GMP]
   ignore line: []
@@ -149,16 +134,14 @@ Parsed C implicit link information from above output:
   ignore line: []
   ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
   ignore line: [Compiler executable checksum: 00000000000000000000000000000000]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
-  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o /tmp/ccoTJeYO.s]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o /tmp/cc6dbqum.s]
   ignore line: [GNU assembler version 2.32 (x86_64-suse-linux) using BFD version (GNU Binutils]
   ignore line: [ openSUSE Tumbleweed) 2.32]
   ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/]
   ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
-  ignore line: [Linking C executable cmTC_a4b0e]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a4b0e.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/cc     -v -rdynamic CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o  -o cmTC_a4b0e ]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o' '-c' '-mtune=generic' '-march=x86-64']
+  ignore line: [[2/2] Linking C executable cmTC_c5f96]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/cc]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper]
@@ -169,13 +152,13 @@ Parsed C implicit link information from above output:
   ignore line: [gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) ]
   ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/]
   ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_a4b0e' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/ccZHHnGN.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_a4b0e /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c5f96' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/cc4EvVCo.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_c5f96 /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o]
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccZHHnGN.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/cc4EvVCo.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -189,7 +172,7 @@ Parsed C implicit link information from above output:
     arg [-dynamic-linker] ==> ignore
     arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_a4b0e] ==> ignore
+    arg [cmTC_c5f96] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o] ==> ignore
@@ -199,7 +182,7 @@ Parsed C implicit link information from above output:
     arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
     arg [-L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib]
     arg [-L/usr/lib64/gcc/x86_64-suse-linux/9/../../..] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/9/../../..]
-    arg [CMakeFiles/cmTC_a4b0e.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [CMakeFiles/cmTC_c5f96.dir/CMakeCCompilerABI.c.o] ==> ignore
     arg [-lgcc] ==> lib [gcc]
     arg [--push-state] ==> ignore
     arg [--as-needed] ==> ignore
@@ -227,24 +210,15 @@ Parsed C implicit link information from above output:
 Determining if the CXX compiler works passed with the following output:
 Change Dir: /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake cmTC_26065/fast && /usr/bin/gmake -f CMakeFiles/cmTC_26065.dir/build.make CMakeFiles/cmTC_26065.dir/build
-gmake[1]: Entering directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_26065.dir/testCXXCompiler.cxx.o
-/usr/bin/c++     -o CMakeFiles/cmTC_26065.dir/testCXXCompiler.cxx.o -c /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_26065
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_26065.dir/link.txt --verbose=1
-/usr/bin/c++       -rdynamic CMakeFiles/cmTC_26065.dir/testCXXCompiler.cxx.o  -o cmTC_26065 
-gmake[1]: Leaving directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
+Run Build Command(s):/usr/bin/ninja cmTC_66219 && [1/2] Building CXX object CMakeFiles/cmTC_66219.dir/testCXXCompiler.cxx.o
+[2/2] Linking CXX executable cmTC_66219
 
 
 
 Detecting CXX compiler ABI info compiled with the following output:
 Change Dir: /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp
 
-Run Build Command(s):/usr/bin/gmake cmTC_11a00/fast && /usr/bin/gmake -f CMakeFiles/cmTC_11a00.dir/build.make CMakeFiles/cmTC_11a00.dir/build
-gmake[1]: Entering directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
-Building CXX object CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o
-/usr/bin/c++    -v -o CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+Run Build Command(s):/usr/bin/ninja cmTC_c02f2 && [1/2] Building CXX object CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o
 Using built-in specs.
 COLLECT_GCC=/usr/bin/c++
 OFFLOAD_TARGET_NAMES=hsa:nvptx-none
@@ -252,8 +226,8 @@ Target: x86_64-suse-linux
 Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go,d --enable-offload-targets=hsa,nvptx-none=/usr/nvptx-none, --without-cuda-driver --disable-werror --with-gxx-include-dir=/usr/include/c++/9 --enable-ssp --disable-libssp --disable-libvtv --disable-cet --disable-libcc1 --enable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-libphobos --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-9 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --with-build-config=bootstrap-lto-lean --enable-link-mutex --build=x86_64-suse-linux --host=x86_64-suse-linux
 Thread model: posix
 gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) 
-COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib64/gcc/x86_64-suse-linux/9/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/cc6FHikZ.s
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/9/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/ccIvBNMB.s
 GNU C++14 (SUSE Linux) version 9.2.1 20190820 [gcc-9-branch revision 274748] (x86_64-suse-linux)
 	compiled by GNU C version 9.2.1 20190820 [gcc-9-branch revision 274748], GMP version 6.1.2, MPFR version 4.0.2, MPC version 1.1.0, isl version isl-0.20-GMP
 
@@ -274,15 +248,13 @@ GNU C++14 (SUSE Linux) version 9.2.1 20190820 [gcc-9-branch revision 274748] (x8
 
 GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
 Compiler executable checksum: 00000000000000000000000000000000
-COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc6FHikZ.s
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccIvBNMB.s
 GNU assembler version 2.32 (x86_64-suse-linux) using BFD version (GNU Binutils; openSUSE Tumbleweed) 2.32
 COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/
 LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
-Linking CXX executable cmTC_11a00
-/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_11a00.dir/link.txt --verbose=1
-/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_11a00 
+COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+[2/2] Linking CXX executable cmTC_c02f2
 Using built-in specs.
 COLLECT_GCC=/usr/bin/c++
 COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper
@@ -293,10 +265,9 @@ Thread model: posix
 gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) 
 COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/
 LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_11a00' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
- /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/ccNtaJK3.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_11a00 /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o
-COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_11a00' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
-gmake[1]: Leaving directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp'
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c02f2' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/cck3QGaB.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_c02f2 /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c02f2' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
 
 
 
@@ -327,10 +298,7 @@ Parsed CXX implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command(s):/usr/bin/gmake cmTC_11a00/fast && /usr/bin/gmake -f CMakeFiles/cmTC_11a00.dir/build.make CMakeFiles/cmTC_11a00.dir/build]
-  ignore line: [gmake[1]: Entering directory '/home/marijnfs/dev/yagll/build/CMakeFiles/CMakeTmp']
-  ignore line: [Building CXX object CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/usr/bin/c++    -v -o CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Run Build Command(s):/usr/bin/ninja cmTC_c02f2 && [1/2] Building CXX object CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/c++]
   ignore line: [OFFLOAD_TARGET_NAMES=hsa:nvptx-none]
@@ -338,8 +306,8 @@ Parsed CXX implicit link information from above output:
   ignore line: [Configured with: ../configure --prefix=/usr --infodir=/usr/share/info --mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 --enable-languages=c,c++,objc,fortran,obj-c++,ada,go,d --enable-offload-targets=hsa,nvptx-none=/usr/nvptx-none, --without-cuda-driver --disable-werror --with-gxx-include-dir=/usr/include/c++/9 --enable-ssp --disable-libssp --disable-libvtv --disable-cet --disable-libcc1 --enable-plugin --with-bugurl=https://bugs.opensuse.org/ --with-pkgversion='SUSE Linux' --with-slibdir=/lib64 --with-system-zlib --enable-libstdcxx-allocator=new --disable-libstdcxx-pch --enable-libphobos --enable-version-specific-runtime-libs --with-gcc-major-version-only --enable-linker-build-id --enable-linux-futex --enable-gnu-indirect-function --program-suffix=-9 --without-system-libunwind --enable-multilib --with-arch-32=x86-64 --with-tune=generic --with-build-config=bootstrap-lto-lean --enable-link-mutex --build=x86_64-suse-linux --host=x86_64-suse-linux]
   ignore line: [Thread model: posix]
   ignore line: [gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) ]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/cc6FHikZ.s]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/cc1plus -quiet -v -D_GNU_SOURCE /usr/share/cmake/Modules/CMakeCXXCompilerABI.cpp -quiet -dumpbase CMakeCXXCompilerABI.cpp -mtune=generic -march=x86-64 -auxbase-strip CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o -version -o /tmp/ccIvBNMB.s]
   ignore line: [GNU C++14 (SUSE Linux) version 9.2.1 20190820 [gcc-9-branch revision 274748] (x86_64-suse-linux)]
   ignore line: [	compiled by GNU C version 9.2.1 20190820 [gcc-9-branch revision 274748], GMP version 6.1.2, MPFR version 4.0.2, MPC version 1.1.0, isl version isl-0.20-GMP]
   ignore line: []
@@ -360,16 +328,14 @@ Parsed CXX implicit link information from above output:
   ignore line: []
   ignore line: [GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072]
   ignore line: [Compiler executable checksum: 00000000000000000000000000000000]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o /tmp/cc6FHikZ.s]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [ /usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/as -v --64 -o CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o /tmp/ccIvBNMB.s]
   ignore line: [GNU assembler version 2.32 (x86_64-suse-linux) using BFD version (GNU Binutils]
   ignore line: [ openSUSE Tumbleweed) 2.32]
   ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/]
   ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  ignore line: [Linking CXX executable cmTC_11a00]
-  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_11a00.dir/link.txt --verbose=1]
-  ignore line: [/usr/bin/c++      -v -rdynamic CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_11a00 ]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o' '-c' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  ignore line: [[2/2] Linking CXX executable cmTC_c02f2]
   ignore line: [Using built-in specs.]
   ignore line: [COLLECT_GCC=/usr/bin/c++]
   ignore line: [COLLECT_LTO_WRAPPER=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper]
@@ -380,13 +346,13 @@ Parsed CXX implicit link information from above output:
   ignore line: [gcc version 9.2.1 20190820 [gcc-9-branch revision 274748] (SUSE Linux) ]
   ignore line: [COMPILER_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/bin/]
   ignore line: [LIBRARY_PATH=/usr/lib64/gcc/x86_64-suse-linux/9/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/:/lib/../lib64/:/usr/lib/../lib64/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib/:/usr/lib64/gcc/x86_64-suse-linux/9/../../../:/lib/:/usr/lib/]
-  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_11a00' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
-  link line: [ /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/ccNtaJK3.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_11a00 /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-rdynamic' '-o' 'cmTC_c02f2' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib64/gcc/x86_64-suse-linux/9/collect2 -plugin /usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so -plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper -plugin-opt=-fresolution=/tmp/cck3QGaB.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --build-id --eh-frame-hdr -m elf_x86_64 -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -o cmTC_c02f2 /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o /usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o -L/usr/lib64/gcc/x86_64-suse-linux/9 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64 -L/lib/../lib64 -L/usr/lib/../lib64 -L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib -L/usr/lib64/gcc/x86_64-suse-linux/9/../../.. CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib64/gcc/x86_64-suse-linux/9/crtend.o /usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crtn.o]
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/collect2] ==> ignore
     arg [-plugin] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/liblto_plugin.so] ==> ignore
     arg [-plugin-opt=/usr/lib64/gcc/x86_64-suse-linux/9/lto-wrapper] ==> ignore
-    arg [-plugin-opt=-fresolution=/tmp/ccNtaJK3.res] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/cck3QGaB.res] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
     arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
     arg [-plugin-opt=-pass-through=-lc] ==> ignore
@@ -400,7 +366,7 @@ Parsed CXX implicit link information from above output:
     arg [-dynamic-linker] ==> ignore
     arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_11a00] ==> ignore
+    arg [cmTC_c02f2] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crt1.o] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/../../../../lib64/crti.o] ==> ignore
     arg [/usr/lib64/gcc/x86_64-suse-linux/9/crtbegin.o] ==> ignore
@@ -410,7 +376,7 @@ Parsed CXX implicit link information from above output:
     arg [-L/usr/lib/../lib64] ==> dir [/usr/lib/../lib64]
     arg [-L/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/9/../../../../x86_64-suse-linux/lib]
     arg [-L/usr/lib64/gcc/x86_64-suse-linux/9/../../..] ==> dir [/usr/lib64/gcc/x86_64-suse-linux/9/../../..]
-    arg [CMakeFiles/cmTC_11a00.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [CMakeFiles/cmTC_c02f2.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
     arg [-lstdc++] ==> lib [stdc++]
     arg [-lm] ==> lib [m]
     arg [-lgcc_s] ==> lib [gcc_s]
