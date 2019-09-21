@@ -33,16 +33,26 @@ void ParseGraph::print_dot(string filename) {
   dotfile << "}" << endl;
 }
 
-void ParseGraph::pprint(ostream &out, int n, int depth) {
-  for (int i(0); i < depth; ++i)
-    cout << "  ";
+void ParseGraph::pprint(ostream &out, int n, std::vector<uint8_t> depths) {
+  for (auto &d : depths)
+    if (&d == &depths.back() && !d)
+      cout << "+";
+    else if (d)
+      cout << "|";
+    else
+      cout << " ";
   if (children(n).empty())
     cout << type(n) << "(" << text(n) << ")" << endl;
   else
     cout << type(n) << endl;
   
-  for (auto c : children(n))
-    pprint(out, c, depth + 1);
+  depths.emplace_back(false);
+  
+  auto children_ = children(n);
+  for (auto &child : children_) {
+    depths.back() = child != children_.back();
+    pprint(out, child, depths);
+  }
 }
 
 vector<int> ParseGraph::get_all(int root, string filter_name) {

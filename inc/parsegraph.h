@@ -106,7 +106,7 @@ struct ParseGraph {
 
   void print_dot(std::string filename);
 
-  void pprint(std::ostream &out, int n = 0, int depth = 0);
+  void pprint(std::ostream &out, int n = 0, std::vector<uint8_t> depths = {});
 
   bool has_type(int n);
 
