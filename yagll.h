@@ -114,9 +114,9 @@ struct SearchNode {
   
   std::vector<SearchNode> int_to_searchnodes(std::vector<int> &ints);
 
-  //visit_bottom_up
+  void bottom_up(GraphCallback &callback);
 
-  //visit_dfs_filtered, 
+  void top_down(GraphCallback &callback);
 
   bool valid() { return N != -1; }
 };

@@ -45,3 +45,11 @@ std::vector<SearchNode> SearchNode::int_to_searchnodes(std::vector<int> &ints) {
     *it_vec = SearchNode{*it, pg};
   return nodes;
 }
+
+void SearchNode::bottom_up(GraphCallback &callback) {
+  pg->bottom_up(callback, N);
+}
+
+void SearchNode::top_down(GraphCallback &callback) {
+  pg->top_down(callback, N);
+}

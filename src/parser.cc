@@ -46,6 +46,7 @@ ostream &operator<<(ostream &out, RuleType &t) {
     return out << "END";
     break;
   }
+  return out;
 }
 
 int match(RE2 &matcher, string &str, int pos) {
