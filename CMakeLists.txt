@@ -12,9 +12,9 @@ file(GLOB_RECURSE HDR
 
 find_library (RE2 NAMES re2 REQUIRED HINTS /usr/lib64)
 
+
 include_directories(inc)
 include_directories(.)
 add_library(yagll SHARED ${SRC})
 add_executable(parse bin/parse.cc)
 target_link_libraries(parse yagll stdc++fs ${RE2})
-

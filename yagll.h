@@ -14,10 +14,10 @@
 #include <string>
 #include <vector>
 
-#include "parsegraph.h"
-#include "ruleset.h"
+#include "inc/parsegraph.h"
+#include "inc/ruleset.h"
 
-#include "stringexception.h"
+#include "inc/stringexception.h"
 
 struct NodeIndex {
   int cursor = -1, rule = -1;

@@ -32,14 +32,14 @@ struct GraphCallback {
 };
 
 
-struct TypeGraphCallback : public GraphCallback {
+struct TopDownCallback : public GraphCallback {
   typedef std::function<void(int)> CallbackFunc;
   std::map<std::string, CallbackFunc> callbacks;
   std::set<std::string> types_set;
   
   ParseGraph *pg = 0;
 
-  TypeGraphCallback(ParseGraph *pg_);
+  TopDownCallback(ParseGraph *pg_);
 
   void register_callback(std::string type, CallbackFunc func);
 
@@ -50,7 +50,7 @@ struct TypeGraphCallback : public GraphCallback {
   virtual bool add_children(int n) override;
 };
 
-struct BottomUpGraphCallback : public TypeGraphCallback {
+struct BottomUpCallback : public TopDownCallback {
   virtual void run_default(int n);
   virtual void operator()(int n) override;
 
