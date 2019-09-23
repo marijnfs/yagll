@@ -19,6 +19,11 @@ struct ParsedNode {
 
 
 struct GraphCallback {
+  enum Mode {
+        TOP_DOWN = 0,
+        BOTTOM_UP = 1
+  };
+
   virtual bool match(int n) {
     return true;
   }
@@ -29,17 +34,22 @@ struct GraphCallback {
 
   virtual void operator()(int n) {
   }
+
+  virtual Mode callback_mode() {
+    return TOP_DOWN;
+  }
 };
 
 
-struct TopDownCallback : public GraphCallback {
+struct TypeCallback : public GraphCallback {
   typedef std::function<void(int)> CallbackFunc;
   std::map<std::string, CallbackFunc> callbacks;
   std::set<std::string> types_set;
   
   ParseGraph *pg = 0;
-
-  TopDownCallback(ParseGraph *pg_);
+  Mode mode = TOP_DOWN;
+  
+  TypeCallback(ParseGraph *pg_, Mode mode = TOP_DOWN);
 
   void register_callback(std::string type, CallbackFunc func);
 
@@ -48,15 +58,10 @@ struct TopDownCallback : public GraphCallback {
   virtual bool match(int n) override;
 
   virtual bool add_children(int n) override;
-};
 
-struct BottomUpCallback : public TopDownCallback {
   virtual void run_default(int n);
-  virtual void operator()(int n) override;
 
-  virtual bool match(int n) override;
-
-  virtual bool add_children(int n) override;
+  Mode callback_mode() { return mode; }
 };
 
 struct SearchNode;
@@ -121,6 +126,8 @@ struct ParseGraph {
 
   void top_down(GraphCallback &callback, int root = 0);
   
+  void visit(GraphCallback &callback, int root = 0);
+
   void sort_children(std::function<bool(int a, int b)> cmp);
 
   int size() { return nodes.size(); }

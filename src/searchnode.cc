@@ -53,3 +53,7 @@ void SearchNode::bottom_up(GraphCallback &callback) {
 void SearchNode::top_down(GraphCallback &callback) {
   pg->top_down(callback, N);
 }
+
+void SearchNode::visit(GraphCallback &callback) {
+  pg->visit(callback, N);
+}

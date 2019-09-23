@@ -114,6 +114,8 @@ struct SearchNode {
   
   std::vector<SearchNode> int_to_searchnodes(std::vector<int> &ints);
 
+  void visit(GraphCallback &callback);
+
   void bottom_up(GraphCallback &callback);
 
   void top_down(GraphCallback &callback);

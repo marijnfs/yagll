@@ -2,41 +2,30 @@
 
 using namespace std;
 
-TopDownCallback::TopDownCallback(ParseGraph *pg_) : pg(pg_) {
+
+
+TypeCallback::TypeCallback(ParseGraph *pg_, Mode mode_) : pg(pg_), mode(mode_) {
 }
 
-void TopDownCallback::register_callback(string type, CallbackFunc func) {
+void TypeCallback::register_callback(string type, CallbackFunc func) {
   callbacks[type] = func;
   types_set.insert(type);
 }
 
-void TopDownCallback::operator()(int n) {
+void TypeCallback::operator()(int n) {
   auto t = pg->type(n);
-  callbacks[t](n);
-}
-
-bool TopDownCallback::match(int n) {
-  return types_set.count(pg->type(n));
-}
-
-bool TopDownCallback::add_children(int n) {
-  return types_set.count(pg->type(n)) == 0;
-}
-
-void BottomUpCallback::run_default(int n) {
-}
-
-void BottomUpCallback::operator()(int n) {
-  auto t = pg->type(n);
-  if (types_set.count(t) != 0)
+  if (mode == BOTTOM_UP && types_set.count(t) != 0)
     return run_default(n);
   callbacks[t](n);
 }
 
-bool BottomUpCallback::match(int n) {
-  return true;
+bool TypeCallback::match(int n) {
+  return mode == BOTTOM_UP || types_set.count(pg->type(n));
 }
 
-bool BottomUpCallback::add_children(int n) {
-  return true;
+bool TypeCallback::add_children(int n) {
+  return mode == BOTTOM_UP || types_set.count(pg->type(n)) == 0;
+}
+
+void TypeCallback::run_default(int n) {
 }

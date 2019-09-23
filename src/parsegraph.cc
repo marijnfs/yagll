@@ -333,6 +333,7 @@ void ParseGraph::bottom_up(GraphCallback &callback, int root) {
 }
 
 void ParseGraph::top_down(GraphCallback &callback, int root) {
+  cout << "tpo down" << endl;
   vector<bool> visited(size());
   
   stack<int> q;
@@ -340,6 +341,7 @@ void ParseGraph::top_down(GraphCallback &callback, int root) {
   
   while (q.size()) {
     int n = q.top();
+    cout << n << endl;
     q.pop();
 
     if (visited[n])
@@ -377,9 +379,14 @@ void ParseGraph::sort_children(function<bool(int a, int b)> cmp) {
     for (int c : nodes[n].children)
       q.push(c);
   }
-
 }
 
+void ParseGraph::visit(GraphCallback &callback, int root) {
+  if (callback.callback_mode() == GraphCallback::TOP_DOWN)
+    top_down(callback, root);
+  else
+    bottom_up(callback, root);
+}
 
 void ParseGraph::add_node(int nodeid, int start, int end, string type) {
   nodes.push_back(ParsedNode(nodeid));
