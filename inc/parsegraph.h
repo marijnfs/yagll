@@ -20,8 +20,9 @@ struct ParsedNode {
 
 struct GraphCallback {
   enum Mode {
-        TOP_DOWN = 0,
-        BOTTOM_UP = 1
+             NONE = 0,
+             TOP_DOWN = 1,
+             BOTTOM_UP = 2
   };
 
   virtual bool match(int n) {

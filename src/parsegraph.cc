@@ -384,8 +384,10 @@ void ParseGraph::sort_children(function<bool(int a, int b)> cmp) {
 void ParseGraph::visit(GraphCallback &callback, int root) {
   if (callback.callback_mode() == GraphCallback::TOP_DOWN)
     top_down(callback, root);
-  else
+  else if (callback.callback_mode() == GraphCallback::BOTTOM_UP)
     bottom_up(callback, root);
+  else
+    throw std::runtime_error("callback mode not set");
 }
 
 void ParseGraph::add_node(int nodeid, int start, int end, string type) {
