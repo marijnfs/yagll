@@ -51,6 +51,7 @@ struct TypeCallback : public GraphCallback {
   Mode mode = TOP_DOWN;
   
   TypeCallback(ParseGraph *pg_, Mode mode = TOP_DOWN);
+  TypeCallback(TypeCallback const &other);
 
   void register_callback(std::string type, CallbackFunc func);
 

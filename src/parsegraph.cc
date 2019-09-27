@@ -303,6 +303,7 @@ void ParseGraph::remove_cleanup() {
 }
 
 void ParseGraph::bottom_up(GraphCallback &callback, int root) {
+  cout << "bottom up " << root << endl;
   vector<bool> visited(size());
   vector<int> matched;
   matched.reserve(size()); //reserve to prevent many reallocs, could be optimized by allocating it once and reusing it
@@ -333,7 +334,7 @@ void ParseGraph::bottom_up(GraphCallback &callback, int root) {
 }
 
 void ParseGraph::top_down(GraphCallback &callback, int root) {
-  cout << "tpo down" << endl;
+  cout << "top down " << root << endl;
   vector<bool> visited(size());
   
   stack<int> q;
@@ -341,7 +342,6 @@ void ParseGraph::top_down(GraphCallback &callback, int root) {
   
   while (q.size()) {
     int n = q.top();
-    cout << n << endl;
     q.pop();
 
     if (visited[n])

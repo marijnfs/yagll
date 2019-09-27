@@ -1,8 +1,12 @@
 #include "parsegraph.h"
+#include <iostream>
 
 using namespace std;
 
 
+TypeCallback::TypeCallback(TypeCallback const &other) : pg(other.pg) {
+  
+}
 
 TypeCallback::TypeCallback(ParseGraph *pg_, Mode mode_) : pg(pg_), mode(mode_) {
 }
@@ -14,8 +18,13 @@ void TypeCallback::register_callback(string type, CallbackFunc func) {
 
 void TypeCallback::operator()(int n) {
   auto t = pg->type(n);
-  if (mode == BOTTOM_UP && types_set.count(t) != 0)
+  cout << "calling back type: " << t << endl;;
+  if (mode == BOTTOM_UP && types_set.count(t) == 0)
     return run_default(n);
+  cout << callbacks.count(t) << endl;
+  
+  if (!callbacks.count(t))
+    throw std::runtime_error(t);
   callbacks[t](n);
 }
 

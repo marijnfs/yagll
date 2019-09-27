@@ -18,6 +18,9 @@ SearchNode SearchNode::child(int n) {
 
 SearchNode SearchNode::child(string type) {
   auto &children = pg->children(N);
+  if (children.empty()) {
+    return SearchNode{-1, pg};
+  }
   for (int child : children)
     if (pg->type(child) == type)
       return SearchNode{child, pg};
