@@ -35,7 +35,7 @@ void ParseGraph::print_dot(string filename) {
 
 void ParseGraph::pprint(ostream &out, int n, std::vector<uint8_t> depths) {
   for (auto &d : depths)
-    if (&d == &depths.back() && !d)
+    if (&d == &depths.back())
       cout << "+";
     else if (d)
       cout << "|";
