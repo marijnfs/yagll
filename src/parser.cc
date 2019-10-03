@@ -18,13 +18,13 @@ using namespace std;
 bool NodeIndex::operator<(NodeIndex const &other) const {
   if (cursor != other.cursor)
     return cursor < other.cursor;
-  return rule > other.rule;
+  return rule < other.rule;
 }
 
 bool NodeIndex::operator>(NodeIndex const &other) const {
   if (cursor != other.cursor)
     return cursor > other.cursor;
-  return rule < other.rule;
+  return rule > other.rule;
 }
 
 ostream &operator<<(ostream &out, NodeIndex &ni) {
