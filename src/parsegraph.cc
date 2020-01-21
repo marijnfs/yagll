@@ -127,7 +127,6 @@ int ParseGraph::get_one(int root, string search_name) {
     visited.insert(n);
 
     for (int c : nodes[n].children) {
-      // cout << c << " |" << type(c) << "|" << endl;
       if (type(c) == search_name)
         return c;
       else
@@ -155,7 +154,6 @@ int ParseGraph::get_one(int root, set<string> search_names) {
     visited.insert(n);
 
     for (int c : nodes[n].children) {
-      // cout << c << " |" << type(c) << "|" << endl;
       if (search_names.count(type(c)))
         return c;
       else
@@ -303,7 +301,6 @@ void ParseGraph::remove_cleanup() {
 }
 
 void ParseGraph::bottom_up(GraphCallback &callback, int root) {
-  cout << "bottom up " << root << endl;
   vector<bool> visited(size());
   vector<int> matched;
   matched.reserve(size()); //reserve to prevent many reallocs, could be optimized by allocating it once and reusing it
@@ -334,7 +331,6 @@ void ParseGraph::bottom_up(GraphCallback &callback, int root) {
 }
 
 void ParseGraph::top_down(GraphCallback &callback, int root) {
-  cout << "top down " << root << endl;
   vector<bool> visited(size());
   
   stack<int> q;

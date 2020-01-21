@@ -18,10 +18,9 @@ void TypeCallback::register_callback(string type, CallbackFunc func) {
 
 void TypeCallback::operator()(int n) {
   auto t = pg->type(n);
-  cout << "calling back type: " << t << endl;;
+
   if (mode == BOTTOM_UP && types_set.count(t) == 0)
     return run_default(n);
-  cout << callbacks.count(t) << endl;
   
   if (!callbacks.count(t))
     throw std::runtime_error(t);
