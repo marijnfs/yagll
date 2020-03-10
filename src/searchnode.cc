@@ -13,7 +13,10 @@ std::string SearchNode::type() {
 }
 
 SearchNode SearchNode::child(int n) {
-  return SearchNode{pg->children(N)[n], pg};
+  auto children = pg->children(N);
+  if (children.empty())
+    return SearchNode{-1, pg};
+  return SearchNode{children[n], pg};
 }
 
 SearchNode SearchNode::child(string type) {
